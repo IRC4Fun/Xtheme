@@ -11,6 +11,9 @@ e-mail address by issuing the following command on IRC:
 
 /msg &nicksvs& VERIFY EMAILCHG &accountname& &param&
 
+You can also VERIFY this EMAILCHG via the Web at:
+https://www.irc4fun.net/services/
+
 Thank you for updating your e-mail address on file with the &netname&
 IRC network!
 --

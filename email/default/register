@@ -11,6 +11,9 @@ command on IRC:
 
 /msg &nicksvs& VERIFY REGISTER &accountname& &param&
 
+You can also VERIFY via the Web at:
+https://www.irc4fun.net/services/
+
 Thank you for registering your account on the &netname& IRC network!
 
 --
