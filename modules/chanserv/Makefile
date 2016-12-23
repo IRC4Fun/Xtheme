@@ -23,6 +23,7 @@ SRCS =			\
 	clone.c	\
 	close.c	\
 	count.c	\
+	cs_successor_abandoned.c	\
 	drop.c	\
 	fflags.c	\
 	flags.c	\
