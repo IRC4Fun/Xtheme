@@ -470,6 +470,18 @@ static void cs_cmd_flags(sourceinfo_t *si, int parc, char *parv[])
 				return;
 			}
 
+			/* Don't allow users who have not completed VERIFICATION
+			 * (when applicable) to be added to channel access lists.
+			 * They will expire after being unverified for 24 hours
+			 * anyway. -- siniStar
+			 */
+			if (isuser(mt) && (MU_WAITAUTH & user(mt)->flags && addflags != CA_AKICK && addflags != 0 && (ca->level == 0 || ca->level == CA_AKICK)))
+			{
+				command_fail(si, fault_noprivs, _("\2%s\2 must complete \2Account Verification\2 to be added to channel access lists (\2UNVERIFIED\2 user)."), mt->name);
+				chanacs_close(ca);
+				return;
+			}
+
 			if (ca->level == 0 && chanacs_is_table_full(ca))
 			{
 				command_fail(si, fault_toomany, _("Channel %s access list is full."), mc->name);
