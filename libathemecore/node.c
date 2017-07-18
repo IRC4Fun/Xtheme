@@ -302,7 +302,7 @@ zline_t *zline_add_with_id(const char *host, const char *reason, long duration, 
 	snprintf(treason, sizeof(treason), "[Z#%lu] %s", z->number, z->reason);
 
 	if (me.connected)
-		dline_sts("*", host, duration, treason);
+		dline_sts(host, duration, treason);
 
 	return z;
 }
