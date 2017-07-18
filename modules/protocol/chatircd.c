@@ -41,9 +41,6 @@ ircd_t chatircd = {
 	'e',                            /* Except mchar */
 	'I',                            /* Invex mchar */
 	IRCD_CIDR_BANS | IRCD_HOLDNICK, /* Flags */
-	true,					/* Uses quiets */
-	"q",					/* Mode for quiets, if supported. (e.g. "q" on ChatIRCd)  Otherwise, NULL. */
-	""						/* Acting extban, if needed (e.g. "m:" on InspIRCd).  "" otherwise. */
 };
 
 struct cmode_ chatircd_mode_list[] = {
@@ -125,7 +122,7 @@ static bool check_forward(const char *value, channel_t *c, mychan_t *mc, user_t 
 	if (u == NULL && mu == NULL)
 		return true;
 	target_c = channel_find(value);
-	target_mc = MYCHAN_FROM(target_c);
+	target_mc = mychan_from(target_c);
 	if (target_c == NULL && target_mc == NULL)
 		return false;
 	if (target_c != NULL && target_c->modes & CMODE_FTARGET)
