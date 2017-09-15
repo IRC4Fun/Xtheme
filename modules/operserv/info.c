@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2014-2017 Xtheme Development Group <www.Xtheme.org>
  * Copyright (c) 2010 Atheme Development Group, et al.
  * Rights to this code are as documented in doc/LICENSE.
  *
@@ -36,8 +37,8 @@ static void os_cmd_info(sourceinfo_t *si, int parc, char *parv[])
 	logcommand(si, CMDLOG_GET, "INFO");
 
 	command_success_nodata(si, _("How often services writes changes to the database: %d minutes"), config_options.commit_interval / 60);
-	command_success_nodata(si, _("Default akill time: %d days"), config_options.kline_time / 86400);
-	command_success_nodata(si, _("Default zline time: %d days"), config_options.zline_time / 86400);
+	command_success_nodata(si, _("Default AKILL time: %d days"), config_options.akill_time / 86400);
+	command_success_nodata(si, _("Default ZLINE time: %d days"), config_options.zline_time / 86400);
 	command_success_nodata(si, _("Will services be sending WALLOPS/GLOBOPS about various things: %s"), config_options.silent ? "no" : "yes");
 	command_success_nodata(si, _("How many messages before a flood is triggered, (if 0, flood protection is disabled): %d"), config_options.flood_msgs);
 	command_success_nodata(si, _("How long before the flood counter resets: %d seconds"), config_options.flood_time);
@@ -45,6 +46,7 @@ static void os_cmd_info(sourceinfo_t *si, int parc, char *parv[])
 	command_success_nodata(si, _("Number of commands used before ratelimiting starts, (if 0, ratelimiting is disabled): %d"), config_options.ratelimit_uses);
 	command_success_nodata(si, _("How long before ratelimiting counter resets, (if 0, ratelimiting is disabled): %d seconds"), config_options.ratelimit_period);
 	command_success_nodata(si, _("No nick ownership enabled: %s"), nicksvs.no_nick_ownership ? "yes" : "no");
+	command_success_nodata(si, _("Number of days a user must wait between vHost changes: (if 0, limiting is disabled): %d days"), config_options.vhost_change);
         command_success_nodata(si, _("Nickname expiration time: %d days"), nicksvs.expiry / 86400);
 	command_success_nodata(si, _("Nickname enforce expiry time: %d days"), nicksvs.enforce_expiry / 86400);
 	command_success_nodata(si, _("Default nickname enforce delay: %d seconds"), nicksvs.enforce_delay);

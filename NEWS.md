@@ -1,35 +1,60 @@
 Xtheme IRC Services git (8.0.0-dev) Development Notes  
 ==================================================  
+botserv
+-------
+* BotServ bots are now automatically un-assigned if a channel is frozen.
+	(Previously, ChanServ would additionally join the channel; causing
+	there to be ChanServ as well as a BotServ bot in a frozen channel
+	and duplicated output of fantasy commands.)  
+
 chanserv
 --------
-* AKICK enforcement (kick messages) have been updated to a more  
-	modern kickreason.  Was: "Banned: Reason" - Now:  
-	"(setter) Reason"
+* AKICK enforcement (kick messages) have been updated to a more
+	modern kickreason.  
+	Was: "Banned: Reason" - Now:
+	"(setter) Reason"  
+* FREEZE command now un-assigns any BotServ bot that is assigned to
+	the channel so that there are not two service bots in the frozen
+	channel.  
+
+config
+------
+* References to KLINE have been changed to AKILL for better consistency.  
+	This causes three (3) configuration changes:  
+	* kline_time is now akill_time  
+	* kline_with_ident is now akill_with_ident  
+	* kline_verified_ident is now akill_verified_ident  
+* A new config option vhost_time has been added, allowing network staff
+	to limit how often (in days) a user must wait between vHost changes
+	such as use of TAKE or REQUEST command.  
+	This causes one (1) additional configuration addition:
+	* vhost_time (in days) 
 
 contrib  
 -------  
 * Help: Added observed missing help files for various contrib
 	modules.  
-* ns_ajoin: Fixed a bug in the NickServ AJOIN module that would  
-	allow adding erroneous channels to AJOIN. (instead of  
+* ns_ajoin: Fixed a bug in the NickServ AJOIN module that would
+	allow adding erroneous channels to AJOIN. (instead of
 	ensuring it is a valid channel name)  
-* os_akillchan: Updated so that when a user joins an AKILLCHAN the  
-	user is AKILLed using @IP, making less redundant akills for  
-	the user@host and going with @IP instead.  (Previously would  
-	AKILL all user@hosts joining, which in the case of a botnet  
-	can result in many duplicate AKILLs that could have been solved  
+* os_akillchan: Updated so that when a user joins an AKILLCHAN the
+	user is AKILLed using @IP, making less redundant akills for
+	the user@host and going with @IP instead.  (Previously would
+	AKILL all user@hosts joining, which in the case of a botnet
+	can result in many duplicate AKILLs that could have been solved
 	with just 1 AKILL on the IP address.  
-* os_akillnicklist: Updated so that when a user matches the AKILL  
-	criteria that the AKILL is sent using *@IP to be more effective  
+* os_akillnicklist: Updated so that when a user matches the AKILL
+	criteria that the AKILL is sent using *@IP to be more effective
 	against bots/drones.  
-* os_zlinechan: New contrib module that does the same as akillchan,  
-	but sets ZLINEs/DLINEs instead of AKILLs - managed via ZLINE  
-	management in OperServ. (LIST,ADD,DEL,etc.)    
+* os_zlinechan: New contrib module that does the same as akillchan,
+	but sets ZLINEs/DLINEs instead of AKILLs - managed via ZLINE
+	management in OperServ. (LIST,ADD,DEL,etc.)   
+* os_trace: updated to use the new akill_time config option.  
 
 core
 ----
 * Added a VERIFICATION warning for un-verified users (when applicable) 
-	that reminds un-verified users that their account will expire 
+	that reminds un-verified users that their account will expire
 	within 24 hours of registration.  
 
 database
@@ -40,33 +65,41 @@ database
 general
 -------
 * xtheme.conf.example: Various updates for added modules, missing info,  
-	and maintenance.
+	and maintenance.  **4 changes to xtheme.conf so far.**  
+
+hostserv
+--------
+* New config option (vhost_time) allows Network Staff to limit how often a
+	user may change their vHost without Staff intervention. (Helps deter
+	ban evaders, etc.)  
 
 memoserv
 --------
-* send: Read receipts now include the original memo text (thanks to  
-	[ChatServices](https://bitbucket.org/chatlounge/chatservices/) and @MrBenC  
+* send: Read receipts now include the original memo text (thanks to
+	[ChatServices](https://bitbucket.org/chatlounge/chatservices/) and @MrBenC )  
+* send: fix format warnings during compile	
 
 nickserv  
 --------  
-* badmail: You now filter the LIST output by pattern.  Also, a new  
-	TEST subcommand was added to allow lookup of patterns that would  
+* badmail: You now filter the LIST output by pattern.  Also, a new
+	TEST subcommand was added to allow lookup of patterns that would
 	prevent the use of an email address.  
 
 operserv
 --------
-* netlog: New module for logging/relaying network information (similar  
+* netlog: New module for logging/relaying network information (similar
 	to Anope's LOGUSERS functionality) and logtype: NETLOG  
+* info: Now refers to KLINEs as AKILLs for better consistency
 
 protocol
 --------
-* chatircd protocol added (a modern Charybdis fork)  
+* chatircd protocol added (a modern Charybdis fork)
 	https://bitbucket.org/chatlounge/chatircd/  
 
 
-## STAY UP TO DATE WITH XthemeOrg NEWS, UPDATES & SECURITY ADVISORIES
-Subscribe to the XthemeOrg News (hosted by IRC4Fun) at:
-https://www.irc4fun.net/xtheme-news/
+## STAY UP TO DATE WITH XthemeOrg NEWS, UPDATES & SECURITY ADVISORIES  
+Subscribe to the XthemeOrg News (hosted by IRC4Fun) at:  
+https://www.irc4fun.net/xtheme-news/  
 
 
 Xtheme Services 7.5.2 Development Notes
