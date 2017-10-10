@@ -22,17 +22,7 @@
 
 #ifdef HAVE_OPENSSL
 
-DECLARE_MODULE_V1("crypto/pbkdf2v2", false, _modinit, _moddeinit,
-                  PACKAGE_VERSION, VENDOR_STRING);
-
 #include <openssl/evp.h>
-
-/*
- * You can change the 2 values below without invalidating old hashes
- */
-
-#define PBKDF2_PRF_DEF		6
-#define PBKDF2_ITER_DEF		64000
 
 /*
  * Do not change anything below this line unless you know what you are doing,
@@ -42,120 +32,159 @@ DECLARE_MODULE_V1("crypto/pbkdf2v2", false, _modinit, _moddeinit,
  * sufficient.
  */
 
-#define PBKDF2_SALTLEN		16
-#define PBKDF2_F_SCAN		"$z$%u$%u$%16[A-Za-z0-9]$"
-#define PBKDF2_F_SALT		"$z$%u$%u$%s$"
-#define PBKDF2_F_PRINT		"$z$%u$%u$%s$%s"
+#define PBKDF2_SALTLEN  16
+#define PBKDF2_F_SCAN   "$z$%u$%u$%16[A-Za-z0-9]$"
+#define PBKDF2_F_SALT   "$z$%u$%u$%s$"
+#define PBKDF2_F_PRINT  "$z$%u$%u$%s$%s"
 
-static const char salt_chars[62] =
-	"AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz0123456789";
+#define PBKDF2_C_MIN    10000
+#define PBKDF2_C_MAX    5000000
+#define PBKDF2_C_DEF    64000
 
-static const char *pbkdf2v2_make_salt(void)
+static const char salt_chars[62] = "AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz0123456789";
+
+static unsigned int pbkdf2v2_digest = 6; /* SHA512 */
+static unsigned int pbkdf2v2_rounds = PBKDF2_C_DEF;
+
+static const char *
+pbkdf2v2_salt(void)
 {
-	char		salt[PBKDF2_SALTLEN + 1];
-	static char	result[PASSLEN];
+	/* Fill salt array with random bytes */
+	unsigned char rawsalt[PBKDF2_SALTLEN];
+	(void) arc4random_buf(rawsalt, sizeof rawsalt);
 
-	memset(salt, 0x00, sizeof salt);
-	memset(result, 0x00, sizeof result);
+	/* Use random byte as index into printable character array, turning it into a printable string */
+	char salt[sizeof rawsalt + 1];
+	for (size_t i = 0; i < sizeof rawsalt; i++)
+		salt[i] = salt_chars[rawsalt[i] % sizeof salt_chars];
 
-	for (int i = 0; i < PBKDF2_SALTLEN; i++)
-		salt[i] = salt_chars[arc4random() % sizeof salt_chars];
+	/* NULL-terminate the string */
+	salt[sizeof rawsalt] = 0x00;
 
-	(void) snprintf(result, sizeof result, PBKDF2_F_SALT,
-	                PBKDF2_PRF_DEF, PBKDF2_ITER_DEF, salt);
+	/* Format and return the result */
+	static char res[PASSLEN];
+	if (snprintf(res, PASSLEN, PBKDF2_F_SALT, pbkdf2v2_digest, pbkdf2v2_rounds, salt) >= PASSLEN)
+		return NULL;
 
-	return result;
+	return res;
 }
 
-static const char *pbkdf2v2_crypt(const char *pass, const char *crypt_str)
+static const char *
+pbkdf2v2_crypt(const char *const restrict pass, const char *const restrict crypt_str)
 {
-	unsigned int	prf = 0, iter = 0;
-	char		salt[PBKDF2_SALTLEN + 1];
-
-	const EVP_MD*	md = NULL;
-	unsigned char	digest[EVP_MAX_MD_SIZE];
-	char		digest_b64[(EVP_MAX_MD_SIZE * 2) + 5];
-	static char	result[PASSLEN];
-
 	/*
 	 * Attempt to extract the PRF, iteration count and salt
 	 *
 	 * If this fails, we're trying to verify a hash not produced by
 	 * this module - just bail out, libathemecore can handle NULL
 	 */
-	if (sscanf(crypt_str, PBKDF2_F_SCAN, &prf, &iter, salt) < 3)
+	unsigned int prf;
+	unsigned int iter;
+	char salt[PBKDF2_SALTLEN + 1];
+	if (sscanf(crypt_str, PBKDF2_F_SCAN, &prf, &iter, salt) != 3)
 		return NULL;
 
-	/* Look up the digest method corresponding to the PRF */
-	switch (prf) {
-
-	case 5:
+	/*
+	 * Look up the digest method corresponding to the PRF
+	 *
+	 * If this fails, we are trying to verify a hash that we don't
+	 * know how to compute, just bail out like above.
+	 */
+	const EVP_MD *md;
+	if (prf == 5)
 		md = EVP_sha256();
-		break;
-
-	case 6:
+	else if (prf == 6)
 		md = EVP_sha512();
-		break;
-
-	default:
-		/*
-		 * Similar to above, trying to verify a password
-		 * that we cannot ever verify - bail out here
-		 */
+	else
 		return NULL;
-	}
 
 	/* Compute the PBKDF2 digest */
-	size_t sl = strlen(salt);
-	size_t pl = strlen(pass);
-	(void) PKCS5_PBKDF2_HMAC(pass, pl, (unsigned char *) salt, sl,
-	                         iter, md, EVP_MD_size(md), digest);
+	const int pl = (int) strlen(pass);
+	const int sl = (int) strlen(salt);
+	unsigned char digest[EVP_MAX_MD_SIZE];
+	(void) PKCS5_PBKDF2_HMAC(pass, pl, (unsigned char *) salt, sl, (int) iter, md, EVP_MD_size(md), digest);
 
 	/* Convert the digest to Base 64 */
-	memset(digest_b64, 0x00, sizeof digest_b64);
-	(void) base64_encode((const char *) digest, EVP_MD_size(md),
-	                     digest_b64, sizeof digest_b64);
+	char digest_b64[(EVP_MAX_MD_SIZE * 2) + 5];
+	(void) base64_encode((const char *) digest, (size_t) EVP_MD_size(md), digest_b64, sizeof digest_b64);
 
 	/* Format the result */
-	memset(result, 0x00, sizeof result);
-	(void) snprintf(result, sizeof result, PBKDF2_F_PRINT,
-	                prf, iter, salt, digest_b64);
+	static char res[PASSLEN];
+	if (snprintf(res, PASSLEN, PBKDF2_F_PRINT, prf, iter, salt, digest_b64) >= PASSLEN)
+		return NULL;
 
-	return result;
+	return res;
 }
 
-static bool pbkdf2v2_needs_param_upgrade(const char *user_pass_string)
+static bool
+pbkdf2v2_upgrade(const char *const restrict crypt_str)
 {
-	unsigned int	prf = 0, iter = 0;
-	char		salt[PBKDF2_SALTLEN + 1];
+	unsigned int prf;
+	unsigned int iter;
+	char salt[PBKDF2_SALTLEN + 1];
 
-	if (sscanf(user_pass_string, PBKDF2_F_SCAN, &prf, &iter, salt) < 3)
+	if (sscanf(crypt_str, PBKDF2_F_SCAN, &prf, &iter, salt) != 3)
+		return false;
+
+	if (prf != pbkdf2v2_digest)
+		return true;
+
+	if (iter != pbkdf2v2_rounds)
+		return true;
+
+	return false;
+}
+
+static int
+c_ci_pbkdf2v2_digest(mowgli_config_file_entry_t *const restrict ce)
+{
+	if (ce->vardata == NULL)
+	{
+		conf_report_warning(ce, "no parameter for configuration option");
 		return 0;
+	}
 
-	if (prf != PBKDF2_PRF_DEF)
-		return 1;
-
-	if (iter != PBKDF2_ITER_DEF)
-		return 1;
+	if (!strcasecmp(ce->vardata, "SHA256"))
+		pbkdf2v2_digest = 5;
+	else if (!strcasecmp(ce->vardata, "SHA512"))
+		pbkdf2v2_digest = 6;
+	else
+		conf_report_warning(ce, "invalid parameter for configuration option");
 
 	return 0;
 }
 
-static crypt_impl_t pbkdf2_crypt_impl = {
-	.id = "pbkdf2v2",
-	.crypt = &pbkdf2v2_crypt,
-	.salt = &pbkdf2v2_make_salt,
-	.needs_param_upgrade = &pbkdf2v2_needs_param_upgrade,
+static crypt_impl_t pbkdf2v2_crypt_impl = {
+	.id                     = "pbkdf2v2",
+	.crypt                  = &pbkdf2v2_crypt,
+	.salt                   = &pbkdf2v2_salt,
+	.needs_param_upgrade    = &pbkdf2v2_upgrade,
 };
 
-void _modinit(module_t* m)
+static mowgli_list_t pbkdf2v2_conf_table;
+
+static void
+crypto_pbkdf2v2_modinit(module_t __attribute__((unused)) *const restrict m)
 {
-	crypt_register(&pbkdf2_crypt_impl);
+	crypt_register(&pbkdf2v2_crypt_impl);
+
+	add_subblock_top_conf("PBKDF2V2", &pbkdf2v2_conf_table);
+	add_conf_item("DIGEST", &pbkdf2v2_conf_table, c_ci_pbkdf2v2_digest);
+	add_uint_conf_item("ROUNDS", &pbkdf2v2_conf_table, 0, &pbkdf2v2_rounds,
+	                             PBKDF2_C_MIN, PBKDF2_C_MAX, PBKDF2_C_DEF);
 }
 
-void _moddeinit(module_unload_intent_t intent)
+static void
+crypto_pbkdf2v2_moddeinit(const module_unload_intent_t __attribute__((unused)) intent)
 {
-	crypt_unregister(&pbkdf2_crypt_impl);
+	del_conf_item("DIGEST", &pbkdf2v2_conf_table);
+	del_conf_item("ROUNDS", &pbkdf2v2_conf_table);
+	del_top_conf("PBKDF2V2");
+
+	crypt_unregister(&pbkdf2v2_crypt_impl);
 }
 
-#endif
+DECLARE_MODULE_V1("crypto/pbkdf2v2", false, crypto_pbkdf2v2_modinit, crypto_pbkdf2v2_moddeinit,
+                  PACKAGE_VERSION, "Aaron Jones <aaronmdjones@gmail.com>");
+
+#endif /* HAVE_OPENSSL */

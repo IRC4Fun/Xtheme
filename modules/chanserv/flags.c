@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Xtheme Development Group (Xtheme.org)
+ * Copyright (c) 2014-2017 Xtheme Development Group (Xtheme.org)
  * Copyright (c) 2005-2007 William Pitcock, et al.
  * Rights to this code are as documented in doc/LICENSE.
  *
@@ -215,7 +215,7 @@ static void cs_cmd_flags(sourceinfo_t *si, int parc, char *parv[])
 		command_fail(si, fault_nosuch_target, _("Channel \2%s\2 is not registered."), channel);
 		return;
 	}
-	
+
 	if (metadata_find(mc, "private:frozen:freezer"))
 	{
 		command_fail(si, fault_noprivs, _("\2%s\2 is frozen."), channel);
@@ -475,7 +475,7 @@ static void cs_cmd_flags(sourceinfo_t *si, int parc, char *parv[])
 			 * They will expire after being unverified for 24 hours
 			 * anyway. -- siniStar
 			 */
-			if (isuser(mt) && (MU_WAITAUTH & user(mt)->flags && addflags != CA_AKICK && addflags != 0 && (ca->level == 0 || ca->level == CA_AKICK)))
+			if (chansvs.verifiedaccess && isuser(mt) && (MU_WAITAUTH & user(mt)->flags && addflags != CA_AKICK && addflags != 0 && (ca->level == 0 || ca->level == CA_AKICK)))
 			{
 				command_fail(si, fault_noprivs, _("\2%s\2 must complete \2Account Verification\2 to be added to channel access lists (\2UNVERIFIED\2 user)."), mt->name);
 				chanacs_close(ca);

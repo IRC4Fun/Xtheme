@@ -27,25 +27,29 @@
 bool auth_module_loaded = false;
 bool (*auth_user_custom)(myuser_t *mu, const char *password);
 
-void set_password(myuser_t *mu, const char *newpassword)
+void
+set_password(myuser_t *const restrict mu, const char *const restrict password)
 {
-	if (mu == NULL || newpassword == NULL)
+	if (mu == NULL || password == NULL)
 		return;
 
 	/* if we can, try to crypt it */
-	if (crypto_module_loaded)
+	const char *const hash = crypt_string(password, NULL);
+
+	if (hash)
 	{
 		mu->flags |= MU_CRYPTPASS;
-		mowgli_strlcpy(mu->pass, crypt_string(newpassword, gen_salt()), PASSLEN);
+		mowgli_strlcpy(mu->pass, hash, PASSLEN);
 	}
 	else
 	{
-		mu->flags &= ~MU_CRYPTPASS;			/* just in case */
-		mowgli_strlcpy(mu->pass, newpassword, PASSLEN);
+		mu->flags &= ~MU_CRYPTPASS;
+		mowgli_strlcpy(mu->pass, password, PASSLEN);
 	}
 }
 
-bool verify_password(myuser_t *mu, const char *password)
+bool
+verify_password(myuser_t *const restrict mu, const char *const restrict password)
 {
 	if (mu == NULL || password == NULL)
 		return false;
@@ -54,31 +58,34 @@ bool verify_password(myuser_t *mu, const char *password)
 		return auth_user_custom(mu, password);
 
 	if (mu->flags & MU_CRYPTPASS)
-		if (crypto_module_loaded)
-		{
-			const crypt_impl_t *ci, *ci_default;
+	{
+		const crypt_impl_t *const ci_default = crypt_get_default_provider();
 
-			ci = crypt_verify_password(password, mu->pass);
-			if (ci == NULL)
+		if (ci_default)
+		{
+			const crypt_impl_t *ci;
+			const char *new_salt, *new_hash;
+
+			if ((ci = crypt_verify_password(password, mu->pass)) == NULL)
 				return false;
 
-			if (ci == (ci_default = crypt_get_default_provider()))
-			{
-				if (ci->needs_param_upgrade != NULL && ci->needs_param_upgrade(mu->pass))
-				{
-					slog(LG_INFO, "verify_password(): transitioning to newer parameters for crypt scheme '%s' for account '%s'",
-					              ci->id, entity(mu)->name);
-
-					mowgli_strlcpy(mu->pass, ci->crypt(password, ci->salt()), PASSLEN);
-				}
-			}
-			else
-			{
+			if (ci != ci_default)
 				slog(LG_INFO, "verify_password(): transitioning from crypt scheme '%s' to '%s' for account '%s'",
 					      ci->id, ci_default->id, entity(mu)->name);
+			else if (ci->needs_param_upgrade != NULL && ci->needs_param_upgrade(mu->pass))
+				slog(LG_INFO, "verify_password(): transitioning to newer parameters for crypt scheme '%s' for account '%s'",
+				              ci->id, entity(mu)->name);
+			else
+				return true;
 
-				mowgli_strlcpy(mu->pass, ci_default->crypt(password, ci_default->salt()), PASSLEN);
-			}
+			if ((new_salt = ci_default->salt()) == NULL)
+				slog(LG_ERROR, "verify_password(): salt generation failed for crypt scheme '%s'",
+				               ci_default->id);
+			else if ((new_hash = ci_default->crypt(password, new_salt)) == NULL)
+				slog(LG_ERROR, "verify_password(): hash generation failed for crypt scheme '%s'",
+				               ci_default->id);
+			else
+				mowgli_strlcpy(mu->pass, new_hash, PASSLEN);
 
 			return true;
 		}
@@ -87,11 +94,12 @@ bool verify_password(myuser_t *mu, const char *password)
 			 * but don't complain about crypted password '*',
 			 * this is supposed to never match
 			 */
-			if (strcmp(password, "*"))
-				slog(LG_ERROR, "check_password(): can't check crypted password -- no crypto module!");
+			if (strcmp(mu->pass, "*"))
+				slog(LG_ERROR, "verify_password(): can't check crypted password -- no crypto module!");
+
 			return false;
 		}
+	}
 	else
 		return (strcmp(mu->pass, password) == 0);
 }
-

@@ -110,7 +110,7 @@ static void cs_xop(sourceinfo_t *si, int parc, char *parv[], const char *levelde
 		command_fail(si, fault_noprivs, _("\2%s\2 is closed."), chan);
 		return;
 	}
-	
+
 	if (metadata_find(mc, "private:frozen:freezer") && (!has_priv(si, PRIV_CHAN_AUSPEX) || strcasecmp("LIST", cmd)))
 	{
 		command_fail(si, fault_noprivs, _("\2%s\2 is frozen."), chan);
@@ -309,7 +309,7 @@ static void cs_xop_do_add(sourceinfo_t *si, mychan_t *mc, myentity_t *mt, char *
 	/* Again, do not allow unverified users to have
 	 * channel access. (when applicable)
 	 * -- siniStar */
-	if (isuser(mt) && MU_WAITAUTH & user(mt)->flags && (ca->level == 0 || ca->level == CA_AKICK))
+	if (chansvs.verifiedaccess && isuser(mt) && MU_WAITAUTH & user(mt)->flags && (ca->level == 0 || ca->level == CA_AKICK))
 	{
 		command_fail(si, fault_noprivs, _("\2%s\2 must complete \2Account Verification\2 to be added to channel access lists (\2UNVERIFIED\2 user)."), mt->name);
 		chanacs_close(ca);

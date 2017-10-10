@@ -691,6 +691,11 @@ static void unreal_sasl_sts(char *target, char mode, char *data)
 	sts(":%s SASL %s %s %c %s", saslserv->me->nick, servermask, target, mode, data);
 }
 
+static void unreal_sasl_mechlist_sts(const char *mechlist)
+{
+	sts("MD client %s saslmechlist :%s", ME, mechlist);
+}
+
 static void unreal_svslogin_sts(char *target, char *nick, char *user, char *host, myuser_t *account)
 {
 	char servermask[BUFSIZE], *p;
@@ -763,11 +768,17 @@ static void m_sasl(sourceinfo_t *si, int parc, char *parv[])
 	if (parc < 4)
 		return;
 
+	(void) memset(&smsg, 0x00, sizeof smsg);
+
 	smsg.uid = parv[1];
 	smsg.mode = *parv[2];
-	smsg.buf = parv[3];
-	smsg.ext = parc >= 4 ? parv[4] : NULL;
-	smsg.server = si->s ? si->s : NULL;
+	smsg.parc = parc - 3;
+	smsg.server = si->s;
+
+	if (smsg.parc > SASL_MESSAGE_MAXPARA)
+		smsg.parc = SASL_MESSAGE_MAXPARA;
+
+	(void) memcpy(smsg.parv, &parv[3], smsg.parc * sizeof(char *));
 
 	hook_call_sasl_input(&smsg);
 }
@@ -1550,6 +1561,7 @@ void _modinit(module_t * m)
 	holdnick_sts = &unreal_holdnick_sts;
 	chan_lowerts = &unreal_chan_lowerts;
 	sasl_sts = &unreal_sasl_sts;
+	sasl_mechlist_sts = &unreal_sasl_mechlist_sts;
 	svslogin_sts = &unreal_svslogin_sts;
 	quarantine_sts = &unreal_quarantine_sts;
 	mlock_sts = &unreal_mlock_sts;
