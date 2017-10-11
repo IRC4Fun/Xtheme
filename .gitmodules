@@ -4,3 +4,6 @@
 [submodule "libunwind"]
 	path = libunwind
 	url = git://git.savannah.gnu.org/libunwind.git
+[submodule "modules/contrib"]
+	path = modules/contrib
+	url = https://github.com/XthemeOrg/xtheme-contrib-modules.git
