@@ -1,6 +1,6 @@
 /*
  * Copyright (c) 2005-2010 Atheme Development Group
- * Copyright (c) 2014-2015 Xtheme Development Group
+ * Copyright (c) 2014-2017 Xtheme Development Group
  * Rights to this code are documented in doc/LICENSE.
  *
  * This file contains version information.
@@ -15,9 +15,10 @@ const char *infotext[] =
 {
   "Xtheme IRC Services --",
   "Xtheme is a fork of Atheme",
-  "Copyright (c) 2014-2015 Xtheme Development Group (http://www.Xtheme.org)",
+  "Copyright (c) 2014-2017 Xtheme Development Group (http://www.Xtheme.org)",
   "Portions copyright(c) 2005-2015 Atheme Development Group (http://www.atheme.org)",
   "Portions copyright (c) 2004 Shrike Developers (http://www.malkier.net)",
+  "Portions copyright (c) 2017 ChatServices (https://bitbucket.org/chatlounge/chatservices)"
   "Portions copyright (c) 2015 Shalture (https://github.com/shalture/shalture)",
   " ",
   "Permission to use, copy, modify, and/or distribute this software for any",
@@ -50,6 +51,7 @@ const char *infotext[] =
   "  Adam, Adam <adam@sigterm.info>",
   "  aji, Alex Iadicicco <alex@ajitek.net>",
   "  alambert, Alex Lambert <alambert@quickfire.org>",
+  "  amdj, Aaron M. D. Jones <aaronmdjones@gmail.com>",
   "  Attila, Attila Molnar <attilamolnar@hush.com>",
   "  beu, Elfyn McBratney <elfyn.mcbratney@gmail.com>",
   "  binki, Nathan Phillip Brink <ohnobinki@ohnopublishing.net>",
@@ -78,13 +80,13 @@ const char *infotext[] =
   "  rintaun, Matt Lanigan <rintaun@projectxero.net>",
   "  sycobuny, Stephen Belcher <sycobuny@malkier.net>",
   " ",
-  "Thanks also to the shalture folks for fixing the",
-  "ChanServ Last Modified by output, which Xtheme included.",
+  "Portions of Xtheme's code includes contributions from atheme forks, such as:",
+  "Ben, Ben C. <ben@chatlounge.net>",
   "Michael Harker <https://github.com/michaelharker>",
   "Janik Kleinhoff <https://github.com/ilbelkyr>",
   " ",
   "For more information about Xtheme, the Xtheme Development",
   "Group and more - see Xtheme.org",
-  "Visit our website at http://www.Xtheme.org/Xtheme/",
+  "Visit our website at http://www.Xtheme.org/",
   0,
 };

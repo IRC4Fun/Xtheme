@@ -38,7 +38,12 @@
 #define ARGON2D_TIMECOST_MAX    16384
 
 #define ATHEME_ARGON2D_LOADB64  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
-#define ATHEME_ARGON2D_LOADSALT "$argon2d$v=19$m=%" PRIu32 ",t=%" PRIu32 ",p=1$%[" ATHEME_ARGON2D_LOADB64 "]$"
+
+// Format strings for (s)scanf(3)
+#define ATHEME_ARGON2D_LOADSALT "$argon2d$v=19$m=%" SCNu32 ",t=%" SCNu32 ",p=1$%[" ATHEME_ARGON2D_LOADB64 "]$"
+#define ATHEME_ARGON2D_LOADHASH ATHEME_ARGON2D_LOADSALT "%[" ATHEME_ARGON2D_LOADB64 "]"
+
+// Format strings for (sn)printf(3)
 #define ATHEME_ARGON2D_SAVESALT "$argon2d$v=19$m=%" PRIu32 ",t=%" PRIu32 ",p=1$%s$"
 #define ATHEME_ARGON2D_SAVEHASH ATHEME_ARGON2D_SAVESALT "%s"
 
@@ -757,7 +762,7 @@ atheme_argon2d_salt(void)
 	uint8_t salt[ATHEME_ARGON2D_SALTLEN];
 	(void) arc4random_buf(salt, sizeof salt);
 
-	char salt_b64[0x8000];
+	char salt_b64[0x2000];
 	(void) argon2d_enc_b64(salt, sizeof salt, salt_b64);
 
 	static char res[PASSLEN];
@@ -768,13 +773,13 @@ atheme_argon2d_salt(void)
 }
 
 static const char *
-atheme_argon2d_crypt(const char *const restrict pass, const char *const restrict encoded)
+atheme_argon2d_crypt(const char *const restrict password, const char *const restrict parameters)
 {
 	struct argon2d_context ctx;
 	(void) memset(&ctx, 0x00, sizeof ctx);
 
-	char salt_b64[0x8000];
-	if (sscanf(encoded, ATHEME_ARGON2D_LOADSALT, &ctx.m_cost, &ctx.t_cost, salt_b64) != 3)
+	char salt_b64[0x2000];
+	if (sscanf(parameters, ATHEME_ARGON2D_LOADSALT, &ctx.m_cost, &ctx.t_cost, salt_b64) != 3)
 		return NULL;
 
 	if ((ctx.m_cost > (0x01U << ARGON2D_MEMCOST_MAX)) || (ctx.t_cost > ARGON2D_TIMECOST_MAX))
@@ -783,13 +788,13 @@ atheme_argon2d_crypt(const char *const restrict pass, const char *const restrict
 	if (argon2d_dec_b64(salt_b64, ctx.salt, sizeof ctx.salt) != sizeof ctx.salt)
 		return NULL;
 
-	ctx.pass = (const uint8_t *) pass;
-	ctx.passlen = (uint32_t) strlen(pass);
+	ctx.pass = (const uint8_t *) password;
+	ctx.passlen = (uint32_t) strlen(password);
 
 	if (!argon2d_hash_raw(&ctx))
 		return NULL;
 
-	char hash_b64[0x8000];
+	char hash_b64[0x2000];
 	(void) argon2d_enc_b64(ctx.hash, sizeof ctx.hash, hash_b64);
 
 	static char res[PASSLEN];
@@ -800,12 +805,45 @@ atheme_argon2d_crypt(const char *const restrict pass, const char *const restrict
 }
 
 static bool
-atheme_argon2d_upgrade(const char *const restrict encoded)
+atheme_argon2d_verify(const char *const restrict password, const char *const restrict parameters)
+{
+	struct argon2d_context ctx;
+	(void) memset(&ctx, 0x00, sizeof ctx);
+
+	char salt_b64[0x2000];
+	char hash_b64[0x2000];
+	if (sscanf(parameters, ATHEME_ARGON2D_LOADHASH, &ctx.m_cost, &ctx.t_cost, salt_b64, hash_b64) != 4)
+		return false;
+
+	if ((ctx.m_cost > (0x01U << ARGON2D_MEMCOST_MAX)) || (ctx.t_cost > ARGON2D_TIMECOST_MAX))
+		return false;
+
+	if (argon2d_dec_b64(salt_b64, ctx.salt, sizeof ctx.salt) != sizeof ctx.salt)
+		return false;
+
+	uint8_t dec_hash[ATHEME_ARGON2D_HASHLEN];
+	if (argon2d_dec_b64(hash_b64, dec_hash, sizeof dec_hash) != sizeof dec_hash)
+		return false;
+
+	ctx.pass = (const uint8_t *) password;
+	ctx.passlen = (uint32_t) strlen(password);
+
+	if (!argon2d_hash_raw(&ctx))
+		return false;
+
+	if (memcmp(ctx.hash, dec_hash, ATHEME_ARGON2D_HASHLEN) != 0)
+		return false;
+
+	return true;
+}
+
+static bool
+atheme_argon2d_recrypt(const char *const restrict parameters)
 {
 	uint32_t m_cost;
 	uint32_t t_cost;
-	char salt_b64[0x8000];
-	if (sscanf(encoded, ATHEME_ARGON2D_LOADSALT, &m_cost, &t_cost, salt_b64) != 3)
+	char salt_b64[0x2000];
+	if (sscanf(parameters, ATHEME_ARGON2D_LOADSALT, &m_cost, &t_cost, salt_b64) != 3)
 		return false;
 
 	uint8_t salt[ATHEME_ARGON2D_SALTLEN];
@@ -821,20 +859,21 @@ atheme_argon2d_upgrade(const char *const restrict encoded)
 	return false;
 }
 
-static crypt_impl_t atheme_argon2d_crypt_impl = {
+static crypt_impl_t crypto_argon2d_impl = {
 
-	.id                     = "argon2d",
-	.crypt                  = &atheme_argon2d_crypt,
-	.salt                   = &atheme_argon2d_salt,
-	.needs_param_upgrade    = &atheme_argon2d_upgrade,
+	.id         = "argon2d",
+	.salt       = &atheme_argon2d_salt,
+	.crypt      = &atheme_argon2d_crypt,
+	.verify     = &atheme_argon2d_verify,
+	.recrypt    = &atheme_argon2d_recrypt,
 };
 
 static mowgli_list_t atheme_argon2d_conf_table;
 
 static void
-atheme_argon2d_modinit(module_t __attribute__((unused)) *const restrict m)
+crypto_argon2d_modinit(module_t __attribute__((unused)) *const restrict m)
 {
-	(void) crypt_register(&atheme_argon2d_crypt_impl);
+	(void) crypt_register(&crypto_argon2d_impl);
 
 	(void) add_subblock_top_conf("ARGON2D", &atheme_argon2d_conf_table);
 
@@ -846,16 +885,16 @@ atheme_argon2d_modinit(module_t __attribute__((unused)) *const restrict m)
 }
 
 static void
-atheme_argon2d_moddeinit(const module_unload_intent_t __attribute__((unused)) intent)
+crypto_argon2d_moddeinit(const module_unload_intent_t __attribute__((unused)) intent)
 {
 	(void) del_conf_item("TIME", &atheme_argon2d_conf_table);
 	(void) del_conf_item("MEMORY", &atheme_argon2d_conf_table);
 	(void) del_top_conf("ARGON2D");
 
-	(void) crypt_unregister(&atheme_argon2d_crypt_impl);
+	(void) crypt_unregister(&crypto_argon2d_impl);
 
 	(void) free(argon2d_mempool);
 }
 
-DECLARE_MODULE_V1("crypto/argon2d", false, atheme_argon2d_modinit, atheme_argon2d_moddeinit,
+DECLARE_MODULE_V1("crypto/argon2d", false, crypto_argon2d_modinit, crypto_argon2d_moddeinit,
                   PACKAGE_VERSION, "Aaron M. D. Jones <aaronmdjones@gmail.com>");

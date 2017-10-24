@@ -115,9 +115,11 @@ static const char *get_template_name(mychan_t *mc, unsigned int level)
 static void do_list(sourceinfo_t *si, mychan_t *mc, unsigned int flags)
 {
 	chanacs_t *ca;
-	mowgli_node_t *n;
+	mowgli_node_t *m, *n;
+	unsigned int entrywidth = 5, nickhostwidth = 13, flagswidth = 5; /* "Nickname/Host" is 13 chars long, "Flags" is 5. */
 	bool operoverride = false;
-	unsigned int i = 1;
+	unsigned int i = 0;
+	char fmtstring[BUFSIZE], entryspacing[BUFSIZE], entryborder[BUFSIZE], nickhostspacing[BUFSIZE], nickhostborder[BUFSIZE], flagsborder[BUFSIZE];
 
 	if (!(mc->flags & MC_PUBACL) && !chanacs_source_has_flag(mc, si, CA_ACLVIEW))
 	{
@@ -130,8 +132,71 @@ static void do_list(sourceinfo_t *si, mychan_t *mc, unsigned int flags)
 		}
 	}
 
-	command_success_nodata(si, _("Entry Nickname/Host          Flags"));
-	command_success_nodata(si, "----- ---------------------- -----");
+	/* Set entrywidth, flagswidth, and nickhostwidth to the length of the
+	 * longest entries.
+	 * - Ben
+	 */
+	MOWGLI_ITER_FOREACH(m, mc->chanacs.head)
+	{
+		ca = m->data;
+
+		if (strlen(ca->entity ? ca->entity->name : ca->host) > nickhostwidth)
+			nickhostwidth = strlen(ca->entity ? ca->entity->name : ca->host);
+
+		if (strlen(bitmask_to_flags(ca->level)) > flagswidth)
+			flagswidth = strlen(bitmask_to_flags(ca->level));
+
+		i++;
+	}
+
+	while (i != 0)
+	{
+		i =  i/10;
+		if (i > 5)
+			entrywidth++;
+	}
+
+	mowgli_strlcpy(entryspacing, " ", BUFSIZE);
+	mowgli_strlcpy(entryborder, "-", BUFSIZE);
+	mowgli_strlcpy(nickhostspacing, " ", BUFSIZE);
+	mowgli_strlcpy(nickhostborder, "-", BUFSIZE);
+	mowgli_strlcpy(flagsborder, "-", BUFSIZE);
+
+	i = 1;
+
+	for (i; i < entrywidth; i++)
+	{
+		mowgli_strlcat(entryborder, "-", BUFSIZE);
+		if (i > 4)
+			mowgli_strlcat(entryspacing, " ", BUFSIZE);
+	}
+
+	i = 1;
+
+	for (i; i < nickhostwidth; i++)
+	{
+		mowgli_strlcat(nickhostborder, "-", BUFSIZE);
+		if (i > 12)
+			mowgli_strlcat(nickhostspacing, " ", BUFSIZE);
+	}
+
+	i = 1;
+
+	for (i; i < flagswidth; i++)
+	{
+		mowgli_strlcat(flagsborder, "-", BUFSIZE);
+	}
+
+	command_success_nodata(si, _("FLAGS list for: \2%s\2"), mc->name);
+
+	command_success_nodata(si, _("Entry%sNickname/Host%sFlags"), entryspacing, nickhostspacing);
+	command_success_nodata(si, "%s %s %s", entryborder, nickhostborder, flagsborder);
+
+	i = 1;
+
+	/* Make dynamic format string. */
+	snprintf(fmtstring, BUFSIZE, "%%%ud %%-%us %%-%us (%%s) (%%s) [modified %%s ago, on %%s]",
+		entrywidth, nickhostwidth, flagswidth);
 
 	MOWGLI_ITER_FOREACH(n, mc->chanacs.head)
 	{
@@ -166,8 +231,9 @@ static void do_list(sourceinfo_t *si, mychan_t *mc, unsigned int flags)
 		i++;
 	}
 
-	command_success_nodata(si, "----- ---------------------- -----");
-	command_success_nodata(si, _("End of \2%s\2 FLAGS listing."), mc->name);
+	command_success_nodata(si, "%s %s %s", entryborder, nickhostborder, flagsborder);
+	command_success_nodata(si, _("End of \2%s\2 FLAGS listing.  Total of %u %s."),
+		mc->name, i - 1, i - 1 == 1 ? "entry" : "entries");
 
 	if (operoverride)
 		logcommand(si, CMDLOG_ADMIN, "FLAGS: \2%s\2 (oper override)", mc->name);
