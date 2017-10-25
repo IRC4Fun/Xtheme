@@ -48,8 +48,6 @@
 #define PBKDF2_FN_SAVEHASH          PBKDF2_FN_SAVESALT "%s"
 #define PBKDF2_FS_SAVEHASH          PBKDF2_FN_SAVEHASH "$%s"
 
-#define PBKDF2_DIGEST_MIN           SHA_DIGEST_LENGTH
-#define PBKDF2_DIGEST_MAX           SHA512_DIGEST_LENGTH
 #define PBKDF2_DIGEST_DEF           PBKDF2_PRF_HMAC_SHA2_512
 
 #define PBKDF2_ITERCNT_MIN          10000U
@@ -81,6 +79,7 @@ atheme_pbkdf2v2_determine_prf(struct pbkdf2v2_parameters *const restrict parsed)
 			/* FALLTHROUGH */
 		case PBKDF2_PRF_HMAC_SHA1:
 			parsed->md = EVP_sha1();
+			parsed->dl = SHA_DIGEST_LENGTH;
 			break;
 
 		case PBKDF2_PRF_SCRAM_SHA2_256:
@@ -88,6 +87,7 @@ atheme_pbkdf2v2_determine_prf(struct pbkdf2v2_parameters *const restrict parsed)
 			/* FALLTHROUGH */
 		case PBKDF2_PRF_HMAC_SHA2_256:
 			parsed->md = EVP_sha256();
+			parsed->dl = SHA256_DIGEST_LENGTH;
 			break;
 
 		case PBKDF2_PRF_SCRAM_SHA2_512:
@@ -95,6 +95,7 @@ atheme_pbkdf2v2_determine_prf(struct pbkdf2v2_parameters *const restrict parsed)
 			/* FALLTHROUGH */
 		case PBKDF2_PRF_HMAC_SHA2_512:
 			parsed->md = EVP_sha512();
+			parsed->dl = SHA512_DIGEST_LENGTH;
 			break;
 
 		default:
@@ -107,16 +108,6 @@ atheme_pbkdf2v2_determine_prf(struct pbkdf2v2_parameters *const restrict parsed)
 		(void) slog(LG_ERROR, "%s: parsed->md is NULL", __func__);
 		return false;
 	}
-
-	const int dl_i = EVP_MD_size(parsed->md);
-
-	if (dl_i < PBKDF2_DIGEST_MIN || dl_i > PBKDF2_DIGEST_MAX)
-	{
-		(void) slog(LG_ERROR, "%s: EVP_MD_size() has bogus value '%d'", __func__, dl_i);
-		return false;
-	}
-
-	parsed->dl = (size_t) dl_i;
 
 	return true;
 }
@@ -227,10 +218,10 @@ parsed:
 
 static bool
 atheme_pbkdf2v2_scram_derive(const struct pbkdf2v2_parameters *const parsed,
-                             unsigned char csk[EVP_MAX_MD_SIZE],
-                             unsigned char chk[EVP_MAX_MD_SIZE])
+                             unsigned char csk[EVP_MAX_MD_SIZE+1],
+                             unsigned char chk[EVP_MAX_MD_SIZE+1])
 {
-	unsigned char cck[EVP_MAX_MD_SIZE];
+	unsigned char cck[EVP_MAX_MD_SIZE+1];
 
 	if (csk && ! HMAC(parsed->md, parsed->cdg, (int) parsed->dl, ServerKeyStr, sizeof ServerKeyStr, csk, NULL))
 	{
@@ -290,8 +281,8 @@ atheme_pbkdf2v2_crypt(const char *const restrict password, const char *const res
 
 	if (parsed.scram)
 	{
-		unsigned char csk[EVP_MAX_MD_SIZE];
-		unsigned char chk[EVP_MAX_MD_SIZE];
+		unsigned char csk[EVP_MAX_MD_SIZE+1];
+		unsigned char chk[EVP_MAX_MD_SIZE+1];
 		char csk64[EVP_MAX_MD_SIZE * 3];
 		char chk64[EVP_MAX_MD_SIZE * 3];
 
@@ -345,7 +336,7 @@ atheme_pbkdf2v2_verify(const char *const restrict password, const char *const re
 
 	if (parsed.scram)
 	{
-		unsigned char csk[EVP_MAX_MD_SIZE];
+		unsigned char csk[EVP_MAX_MD_SIZE+1];
 
 		if (! atheme_pbkdf2v2_scram_derive(&parsed, csk, NULL))
 			// This function logs messages on failure
