@@ -15,6 +15,7 @@ DECLARE_MODULE_V1
 	VENDOR_STRING
 );
 
+service_t *memosvs = NULL;
 unsigned int ratelimit_count = 0;
 time_t ratelimit_firsttime = 0;
 
