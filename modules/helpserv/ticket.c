@@ -61,6 +61,7 @@ void _modinit(module_t *m)
 	hook_add_myuser_delete(account_delete_request);
 	hook_add_db_write(write_ticket_db);
 	add_dupstr_conf_item("HELPGROUP", &memosvs->conf_table, 0, &groupmemo, NULL);
+	memosvs = service_find("memoserv");
 
 	db_register_type_handler("HE", db_h_he);
 
@@ -75,6 +76,7 @@ void _moddeinit(module_unload_intent_t intent)
 	hook_del_user_drop(account_drop_request);
 	hook_del_myuser_delete(account_delete_request);
 	hook_del_db_write(write_ticket_db);
+	del_conf_item("HELPGROUP", &memosvs->conf_table);
 
 	db_unregister_type_handler("HE");
 
@@ -239,7 +241,7 @@ static void helpserv_cmd_request(sourceinfo_t *si, int parc, char *parv[])
 			command_success_nodata(si, _("You have requested help about \2%s\2."), topic);
 			logcommand(si, CMDLOG_REQUEST, "REQUEST: \2%s\2", topic);
 			if (groupmemo != NULL)
-			send_group_memo(req->si, "[auto memo] Please review my HelpServ request about \2%s\2.", topic);
+			send_group_memo(si, "[auto memo] Please review my HelpServ request about \2%s\2.", topic);
 
 			if (config_options.ratelimit_uses && config_options.ratelimit_period)
 				ratelimit_count++;
@@ -265,7 +267,7 @@ static void helpserv_cmd_request(sourceinfo_t *si, int parc, char *parv[])
 	command_success_nodata(si, _("You have requested help about \2%s\2."), topic);
 	logcommand(si, CMDLOG_REQUEST, "REQUEST: \2%s\2", topic);
 	if (groupmemo != NULL)
-	send_group_memo(req->si, "[auto memo] Please review my HelpServ request about \2%s\2.", topic);
+	send_group_memo(si, "[auto memo] Please review my HelpServ request about \2%s\2.", topic);
 	if (config_options.ratelimit_uses && config_options.ratelimit_period)
 		ratelimit_count++;
 	return;
