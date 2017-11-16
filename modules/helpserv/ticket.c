@@ -61,8 +61,8 @@ void _modinit(module_t *m)
 	hook_add_event("myuser_delete");
 	hook_add_myuser_delete(account_delete_request);
 	hook_add_db_write(write_ticket_db);
-	add_dupstr_conf_item("HELPGROUP", &memosvs->conf_table, 0, &groupmemo, NULL);
 	memosvs = service_find("memoserv");
+	add_dupstr_conf_item("HELPGROUP", &memosvs->conf_table, 0, &groupmemo, NULL);
 
 	db_register_type_handler("HE", db_h_he);
 
