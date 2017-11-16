@@ -33,6 +33,8 @@ command_t helpserv_list = { "LIST", N_("Lists users waiting for help."), PRIV_HE
 command_t helpserv_close = { "CLOSE", N_("Close a users' help request."), PRIV_HELPER, 2, helpserv_cmd_close, { .path = "helpserv/close" } };
 command_t helpserv_cancel = { "CANCEL", N_("Cancel your own pending help request."), AC_AUTHENTICATED, 1, helpserv_cmd_cancel, { .path = "helpserv/cancel" } };
 
+static char *groupmemo;
+
 struct ticket_ {
 	stringref nick;
 	time_t ticket_ts;
@@ -58,6 +60,7 @@ void _modinit(module_t *m)
 	hook_add_event("myuser_delete");
 	hook_add_myuser_delete(account_delete_request);
 	hook_add_db_write(write_ticket_db);
+	add_dupstr_conf_item("HELPGROUP", &memosvs->conf_table, 0, &groupmemo, NULL);
 
 	db_register_type_handler("HE", db_h_he);
 
@@ -111,6 +114,33 @@ static void db_h_he(database_handle_t *db, const char *type)
 	l->creator = sstrdup(creator);
 	l->topic = sstrdup(topic);
 	mowgli_node_add(l, mowgli_node_create(), &helpserv_reqlist);
+}
+
+static void send_group_memo(sourceinfo_t *si, const char *memo, ...)
+{
+	service_t *msvs;
+	va_list va;
+	char buf[BUFSIZE];
+
+	return_if_fail(si != NULL);
+	return_if_fail(memo != NULL);
+
+	va_start(va, memo);
+	vsnprintf(buf, BUFSIZE, memo, va);
+	va_end(va);
+
+	if ((msvs = service_find("memoserv")) == NULL)
+		return;
+	else
+	{
+		char cmdbuf[BUFSIZE];
+
+		mowgli_strlcpy(cmdbuf, groupmemo, BUFSIZE);
+		mowgli_strlcat(cmdbuf, " ", BUFSIZE);
+		mowgli_strlcat(cmdbuf, buf, BUFSIZE);
+
+		command_exec_split(msvs, si, "SEND", cmdbuf, msvs->commands);
+	}
 }
 
 static void account_drop_request(myuser_t *mu)
@@ -208,6 +238,9 @@ static void helpserv_cmd_request(sourceinfo_t *si, int parc, char *parv[])
 
 			command_success_nodata(si, _("You have requested help about \2%s\2."), topic);
 			logcommand(si, CMDLOG_REQUEST, "REQUEST: \2%s\2", topic);
+			if (groupmemo != NULL)
+			send_group_memo(req->si, "[auto memo] Please review my HelpServ request about \2%s\2.", topic);
+
 			if (config_options.ratelimit_uses && config_options.ratelimit_period)
 				ratelimit_count++;
 			return;
@@ -231,6 +264,8 @@ static void helpserv_cmd_request(sourceinfo_t *si, int parc, char *parv[])
 
 	command_success_nodata(si, _("You have requested help about \2%s\2."), topic);
 	logcommand(si, CMDLOG_REQUEST, "REQUEST: \2%s\2", topic);
+	if (groupmemo != NULL)
+	send_group_memo(req->si, "[auto memo] Please review my HelpServ request about \2%s\2.", topic);
 	if (config_options.ratelimit_uses && config_options.ratelimit_period)
 		ratelimit_count++;
 	return;
