@@ -1,4 +1,5 @@
 /*
+ * Copyright (c) 2014-2017 Xtheme Development Group <Xtheme.org>
  * Copyright (c) 2005 William Pitcock <nenolod -at- nenolod.net>
  * Rights to this code are as documented in doc/LICENSE.
  *
@@ -117,6 +118,37 @@ static void db_h_he(database_handle_t *db, const char *type)
 	l->creator = sstrdup(creator);
 	l->topic = sstrdup(topic);
 	mowgli_node_add(l, mowgli_node_create(), &helpserv_reqlist);
+}
+
+/* Add ability to send MemoServ memos and Group Memos to staff
+	that are supposed to assist.  (It might just help to let them know!) */
+
+static void send_memo(sourceinfo_t *si, myuser_t *mu, const char *memo, ...)
+{
+	service_t *msvs;
+	va_list va;
+	char buf[BUFSIZE];
+
+	return_if_fail(si != NULL);
+	return_if_fail(mu != NULL);
+	return_if_fail(memo != NULL);
+
+	va_start(va, memo);
+	vsnprintf(buf, BUFSIZE, memo, va);
+	va_end(va);
+
+	if ((msvs = service_find("memoserv")) == NULL)
+		myuser_notice(chansvs.nick, mu, "%s", buf);
+	else
+	{
+		char cmdbuf[BUFSIZE];
+
+		mowgli_strlcpy(cmdbuf, entity(mu)->name, BUFSIZE);
+		mowgli_strlcat(cmdbuf, " ", BUFSIZE);
+		mowgli_strlcat(cmdbuf, buf, BUFSIZE);
+
+		command_exec_split(msvs, si, "SEND", cmdbuf, msvs->commands);
+	}
 }
 
 static void send_group_memo(sourceinfo_t *si, const char *memo, ...)

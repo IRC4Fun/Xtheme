@@ -1,4 +1,38 @@
-Xtheme IRC Services git (8.0.0-dev2) Development Notes  
+Xtheme IRC Services 8.0.0-dev3 Development Notes  
+==================================================  
+chanserv  
+--------
+* regproc: Removed invalid pointer that could lead to a crash on ACTIVATE or REJECT. _(Fixed)_  
+
+core
+----
+* version: added Maro to to credits for being an excellent bug-finder and reporter.  
+
+dist  
+* rotatelogs.in: Added a Log Rotation script that will _(when **modified correctly** and **crontab'd to run once a day**)_ fixes OperServ GREPLOG.
+
+doc
+---
+* INSTALL document Updated  
+
+help
+----
+* cservice/register: Fix to actually provide the necessary output.  
+* cservice: some cosmetic cleanups  
+
+helpserv  
+* ticket: HelpServ REQUEST command can now notify network staff of help requests via MemoServ and Group memos!  
+
+operserv
+* greplog: Now works if the included log rotation script is configured properly, along with a daily crontab _(cronjob)_  
+
+
+## STAY UP TO DATE WITH XthemeOrg NEWS, UPDATES & SECURITY ADVISORIES  
+Subscribe to the XthemeOrg News at:  
+https://xtheme.org/org-tools/newsletter/  
+
+
+Xtheme IRC Services 8.0.0-dev2 Development Notes  
 ==================================================  
 chanserv
 --------
@@ -49,8 +83,8 @@ protocol
 
 
 	## STAY UP TO DATE WITH XthemeOrg NEWS, UPDATES & SECURITY ADVISORIES  
-	Subscribe to the XthemeOrg News (hosted by IRC4Fun) at:  
-	https://www.irc4fun.net/xtheme-news/  
+	Subscribe to the XthemeOrg News at:  
+	https://xtheme.org/org-tools/newsletter/  
 
 
 Xtheme IRC Services 8.0.0-dev1r2 Development Notes  
@@ -69,8 +103,8 @@ nickserv
 
 
 	## STAY UP TO DATE WITH XthemeOrg NEWS, UPDATES & SECURITY ADVISORIES  
-	Subscribe to the XthemeOrg News (hosted by IRC4Fun) at:  
-	https://www.irc4fun.net/xtheme-news/  
+	Subscribe to the XthemeOrg News at:  
+	https://xtheme.org/org-tools/newsletter/  
 
 
 Xtheme IRC Services 8.0.0-dev1 Development Notes  
@@ -205,8 +239,8 @@ protocol
 
 
 ## STAY UP TO DATE WITH XthemeOrg NEWS, UPDATES & SECURITY ADVISORIES  
-Subscribe to the XthemeOrg News (hosted by IRC4Fun) at:  
-https://www.irc4fun.net/xtheme-news/  
+Subscribe to the XthemeOrg News at:  
+https://xtheme.org/org-tools/newsletter/  
 
 
 Xtheme Services 7.5.2 Development Notes
@@ -236,8 +270,8 @@ sasl
 
 
 ## STAY UP TO DATE WITH XthemeOrg NEWS, UPDATES & SECURITY ADVISORIES
-Subscribe to the XthemeOrg News (hosted by IRC4Fun) at:
-https://www.irc4fun.net/xtheme-news/
+Subscribe to the XthemeOrg News at:
+https://xtheme.org/org-tools/newsletter/
 
 
 Xtheme Services 7.5.1 Development Notes
@@ -277,8 +311,8 @@ protocol
 
 
 ## STAY UP TO DATE WITH XthemeOrg NEWS, UPDATES & SECURITY ADVISORIES
-Subscribe to the XthemeOrg News (hosted by IRC4Fun) at:
-https://www.irc4fun.net/xtheme-news/
+Subscribe to the XthemeOrg News at:
+https://xtheme.org/org-tools/newsletter/
 
 Xtheme Services 7.5.0 Development Notes
 ============================================
@@ -300,8 +334,8 @@ nickserv
 
 
 ## STAY UP TO DATE WITH XthemeOrg NEWS, UPDATES & SECURITY ADVISORIES
-Subscribe to the XthemeOrg News (hosted by IRC4Fun) at:
-https://www.irc4fun.net/xtheme-news/
+Subscribe to the XthemeOrg News at:
+https://xtheme.org/org-tools/newsletter/
 
 Xtheme Services 7.5.0-rc1 Development Notes
 ============================================
@@ -384,8 +418,8 @@ proxyscan
 
 
 ## STAY UP TO DATE WITH XthemeOrg NEWS, UPDATES & SECURITY ADVISORIES
-Subscribe to the XthemeOrg News (hosted by IRC4Fun) at:
-https://www.irc4fun.net/xtheme-news/
+Subscribe to the XthemeOrg News at:
+https://xtheme.org/org-tools/newsletter/
 
 Xtheme Services 7.4.3 Development Notes
 =====================================
@@ -440,8 +474,8 @@ protocols
 
 
 ## STAY UP TO DATE WITH XthemeOrg NEWS, UPDATES & SECURITY ADVISORIES
-Subscribe to the XthemeOrg News (hosted by IRC4Fun) at:
-https://www.irc4fun.net/xtheme-news/
+Subscribe to the XthemeOrg News at:
+https://xtheme.org/org-tools/newsletter/
 
 ## NOTE
 ! Atheme Development has resumed.  Xtheme development will continue up until

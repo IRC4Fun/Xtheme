@@ -1,12 +1,15 @@
 #!/usr/bin/perl
-# Atheme log rotate script
+# Xtheme Log Rotatation Script
+#
 # Note: this script assumes --enable-fhs-paths is not in use.
-# $Id: fn-rotatelogs.in 51 2008-03-03 18:26:18Z jilles $
+#
+#  You will want to edit your $basedir = '' to your xtheme installation
+#  directory and add a crontab for this script to be ran daily.
 
 my @arr = gmtime(time-86399);
 my $yesterday = sprintf('%04u%02u%02u', $arr[5] + 1900, $arr[4] + 1, $arr[3]);
 
-my $basedir = '/home/sinistar/irc/installs/xtheme/xtheme750';
+my $basedir = '/home/xtheme';
 my $count = 0;
 
 foreach my $logfile ('xtheme.log', 'account.log', 'commands.log')
