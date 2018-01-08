@@ -83,6 +83,27 @@ static void cs_cmd_register(sourceinfo_t *si, int parc, char *parv[])
 		return;
 	}
 
+	/* make sure the channel exists */
+	if (!(c = channel_find(name)))
+	{
+		command_fail(si, fault_nosuch_target, _("The channel \2%s\2 must exist in order to register it."), name);
+		return;
+	}
+
+	/* make sure they're in it */
+	if (!(cu = chanuser_find(c, si->su)))
+	{
+		command_fail(si, fault_noprivs, _("You must be in \2%s\2 in order to register it."), name);
+		return;
+	}
+
+	/* make sure they're opped (or protected/owner on unreal/inspircd) */
+	if (!((CSTATUS_OP | CSTATUS_PROTECT | CSTATUS_OWNER) & cu->modes))
+	{
+		command_fail(si, fault_noprivs, _("You must be a channel operator in \2%s\2 in order to register it."), name);
+		return;
+	}
+
 	if (metadata_find(si->smu, "private:restrict:setter"))
 	{
 		command_fail(si, fault_noprivs, _("You have been restricted from registering channels by network staff."));
