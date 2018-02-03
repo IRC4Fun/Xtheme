@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2017 Xtheme Development Group (Xtheme.org)
+ * Copyright (c) 2014-2018 Xtheme Development Group (Xtheme.org)
  * Copyright (c) 2005-2007 William Pitcock, et al.
  * Rights to this code are as documented in doc/LICENSE.
  *
@@ -207,6 +207,12 @@ static void do_list(sourceinfo_t *si, mychan_t *mc, unsigned int flags)
 		const char *setter_name;
 
 		ca = n->data;
+
+		/* Do not clutter FLAGS list with AKICKS, they have their own list.
+		  Also channels with PUBACL loaded may not want AKICKs shown to easily
+			evade. -siniStar */
+		if (ca->level == CA_AKICK)
+			continue;
 
 		if (flags && !(ca->level & flags))
 			continue;
