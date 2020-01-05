@@ -39,6 +39,11 @@ static void watch_net_joins(hook_channel_joinpart_t *hdata)
 	if (cu->user->ip == NULL)
 		return;
 
+	/* Failsafe to ensure pseudo-clients are not logged - again, they are no
+		use to us. --synapse */
+	if (!strcasecmp(cu->user->ip, "0::"))
+		return;
+
 	slog(LG_NETLOG, "\2JOIN:\2 %s (%s@%s) [%s] joined \2%s\2",
 			cu->user->nick, cu->user->user, cu->user->host, cu->user->ip, cu->chan->name);
 	return;
@@ -57,6 +62,11 @@ static void watch_net_parts(hook_channel_joinpart_t *hdata)
 
 	/* If the IP is NULL, ignore. (it's of no use to us anyway) --siniStar */
         if (cu->user->ip == NULL)
+                return;
+
+        /* Failsafe to ensure pseudo-clients are not logged - again, they are no
+                use to us. --synapse */
+        if (!strcasecmp(cu->user->ip, "0::"))
                 return;
 
 	slog(LG_NETLOG, "\2PART:\2 %s (%s@%s) [%s] left \2%s\2",
@@ -89,6 +99,11 @@ static void user_delete_info_hook(hook_user_delete_t *hdata)
         if (hdata->u->ip == NULL)
                 return;
 
+        /* Failsafe to ensure pseudo-clients are not logged - again, they are no
+                use to us. --synapse */
+        if (!strcasecmp(hdata->u->ip, "0::"))
+                return;
+
 	slog(LG_NETLOG, "\2QUIT:\2 %s (%s@%s) [%s] disconnected from \2%s\2 (%s)",
 			hdata->u->nick, hdata->u->user, hdata->u->host, hdata->u->ip, hdata->u->server->name, hdata->comment);
 
@@ -103,6 +118,11 @@ static void watch_net_connects(hook_user_nick_t *hdata)
 
 	/* If the IP is NULL, ignore. (it's of no use to us anyway) --siniStar */
         if (hdata->u->ip == NULL)
+                return;
+
+        /* Failsafe to ensure pseudo-clients are not logged - again, they are no
+                use to us. --synapse */
+        if (!strcasecmp(u->ip, "0::"))
                 return;
 
 	slog(LG_NETLOG, "\2CONNECT:\2 %s (%s@%s) [%s] connected to \2%s\2",
@@ -120,6 +140,11 @@ static void watch_net_nicks(hook_user_nick_t *hdata)
 
 	/* If the IP is NULL, ignore. (it's of no use to us anyway) --siniStar */
         if (u->ip == NULL)
+                return;
+
+        /* Failsafe to ensure pseudo-clients are not logged - again, they are no
+                use to us. --synapse */
+        if (!strcasecmp(u->ip, "0::"))
                 return;
 
 	slog(LG_NETLOG, "\2NICK:\2 %s (%s@%s) [%s] is now \2%s\2",
