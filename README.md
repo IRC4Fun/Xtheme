@@ -10,6 +10,12 @@ Almost all behavior can be changed at deployment time just by editing the config
 If you are running this code from Git, you should read GIT-Access for instructions on
 how to fully check out the Xtheme tree, as it is spread across many repositories.
 
+**THIS VERSION OF Xtheme IRC Services IS MAINTAINED AND TAILORED FOR THE IRC4Fun IRC 
+NETWORK (irc.IRC4Fun.net / https://irc4fun.net).  
+
+THE XthemeOrg VERSION OF Xtheme IRC Services IS BEST FOR USE ON NON-IRC4Fun NETWORKS. 
+[https://github.com/XthemeOrg/Xtheme](https://github.com/XthemeOrg/Xtheme)**
+
 ## Basic build instructions for the impatient
 
 Whatever you do, make sure you do *not* install Xtheme into the same location as the source.
@@ -25,19 +31,13 @@ Help is also available on the [Xtheme IRC Services Wiki](https://github.com/Xthe
 
 ## IRC Support
 
+THIS IRC4Fun SPECIFIC VERSION OF Xtheme IRC Services IS NOT SUPPORTED.  IT IS TAILORED 
+FOR THE irc.IRC4Fun.net IRC NETWORK, WHICH UTILIZES IRC4Fun+GNUworld IRC SERVICES 
+(https://irc4.fun/gnuworld) AND Nefarious2 IRCu (https://irc4.fun/nefarious)
+
+ * [IRC](irc://irc.IRC4Fun.net/#Development) irc.IRC4Fun.net #Development
  * [IRC](irc://irc.IRC4Fun.net/#Xtheme) irc.IRC4Fun.net #Xtheme
  * [IRC](irc://chat.freenode.net/#Xtheme) chat.Freenode.net #Xtheme
-
-## SWI (services web interface) Web Panel for Xtheme
-
-If you are interested in having a Services Web Interface (or Services Web Panel), SWI
-*IS* compatible with Xtheme and other Atheme forks, and is available at:
-http://www.Xtheme.org/swi/ or https://github.com/XthemeOrg/SWI/
-
-## Stay up-to-date with XthemeOrg
-
-For News, Updates and Security Advisories, please subscribe to the XthemeOrg News mailing list at:
-https://xtheme.org/org-tools/newsletter
 
 ## links / contact
 
