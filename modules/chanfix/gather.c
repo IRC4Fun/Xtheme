@@ -44,7 +44,7 @@ chanfix_oprecord_t *chanfix_oprecord_create(chanfix_channel_t *chan, user_t *u)
 		orec->entity = entity(u->myuser);
 
 		mowgli_strlcpy(orec->user, u->user, sizeof orec->user);
-		mowgli_strlcpy(orec->host, u->vhost, sizeof orec->host);
+		mowgli_strlcpy(orec->host, u->host, sizeof orec->host);
 	}
 
 	mowgli_node_add(orec, &orec->node, &chan->oprecords);
@@ -66,7 +66,7 @@ chanfix_oprecord_t *chanfix_oprecord_find(chanfix_channel_t *chan, user_t *u)
 		if (orec->entity != NULL && orec->entity == entity(u->myuser))
 			return orec;
 
-		if (!irccasecmp(orec->user, u->user) && !irccasecmp(orec->host, u->vhost))
+		if (!irccasecmp(orec->user, u->user) && !irccasecmp(orec->host, u->host))
 			return orec;
 	}
 
