@@ -147,7 +147,39 @@ kline_t *kline_add_with_id(const char *user, const char *host, const char *reaso
 
 
 	char treason[BUFSIZE];
-	snprintf(treason, sizeof(treason), "[AK#%lu] %s", k->number, k->reason);
+	snprintf(treason, sizeof(treason), "[GID#%lu] %s", k->number, k->reason);
+
+	if (me.connected)
+		kline_sts("*", user, host, duration, treason);
+
+	return k;
+}
+
+kline_t *auto_kline_add_with_id(const char *user, const char *host, const char *reason, long duration, const char *setby, unsigned long id)
+{
+	kline_t *k;
+	mowgli_node_t *n = mowgli_node_create();
+
+	slog(LG_DEBUG, "auto - gline_add(): %s@%s -> %s (%ld)", user, host, reason, duration);
+
+	k = mowgli_heap_alloc(kline_heap);
+
+	mowgli_node_add(k, n, &klnlist);
+
+	k->user = sstrdup(user);
+	k->host = sstrdup(host);
+	k->reason = sstrdup(reason);
+	k->setby = sstrdup(setby);
+	k->duration = duration;
+	k->settime = CURRTIME;
+	k->expires = CURRTIME + duration;
+	k->number = id;
+
+	cnt.kline++;
+
+
+	char treason[BUFSIZE];
+	snprintf(treason, sizeof(treason), "AUTO [GID#%lu] %s", k->number, k->reason);
 
 	if (me.connected)
 		kline_sts("*", user, host, duration, treason);
