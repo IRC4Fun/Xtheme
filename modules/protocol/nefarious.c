@@ -705,6 +705,12 @@ static void p10_kline_sts(const char *server, const char *user, const char *host
 	sts("%s GL * +%s@%s %ld %lu :%s", me.numeric, user, host, duration > 0 ? duration : 2419200, (unsigned long)CURRTIME, reason);
 }
 
+/* server-to-server UNKLINE wrapper */
+static void p10_unkline_sts(const char *server, const char *user, const char *host)
+{
+sts("%s GL * -%s@%s %lu", me.numeric, user, host, (unsigned long)CURRTIME);
+}
+
 void _modinit(module_t * m)
 {
 	MODULE_TRY_REQUEST_DEPENDENCY(m, "protocol/p10-generic");
@@ -721,6 +727,7 @@ void _modinit(module_t * m)
 	svslogin_sts = &nefarious_svslogin_sts;
 	quarantine_sts = &nefarious_quarantine_sts;
 	kline_sts = &p10_kline_sts;
+	unkline_sts = &p10_unkline_sts;
 	mode_list = nefarious_mode_list;
 	ignore_mode_list = nefarious_ignore_mode_list;
 	status_mode_list = nefarious_status_mode_list;
