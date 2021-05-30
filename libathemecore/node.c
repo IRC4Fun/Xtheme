@@ -192,6 +192,11 @@ kline_t *kline_add(const char *user, const char *host, const char *reason, long 
 	return kline_add_with_id(user, host, reason, duration, setby, ++me.kline_id);
 }
 
+kline_t *auto_kline_add(const char *user, const char *host, const char *reason, long duration, const char *setby)
+{
+	return auto_kline_add_with_id(user, host, reason, duration, setby, ++me.kline_id);
+}
+
 kline_t *kline_add_user(user_t *u, const char *reason, long duration, const char *setby)
 {
 	bool use_ident = config_options.akill_with_ident && (!config_options.akill_verified_ident || *u->user != '~');
