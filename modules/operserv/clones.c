@@ -360,51 +360,51 @@ static void os_cmd_clones_kline(sourceinfo_t *si, int parc, char *parv[])
 	{
 		if (kline_enabled && grace_count == 0)
 		{
-			command_fail(si, fault_nochange, _("CLONES akills are already enabled."));
+			command_fail(si, fault_nochange, _("CLONES GLINEs are already enabled."));
 			return;
 		}
 		kline_enabled = true;
 		grace_count = 0;
-		command_success_nodata(si, _("Enabled CLONES akills."));
-		wallops("\2%s\2 enabled CLONES akills", get_oper_name(si));
-		logcommand(si, CMDLOG_ADMIN, "CLONES:AKILL:ON");
+		command_success_nodata(si, _("Enabled CLONES GLINEs."));
+		wallops("\2%s\2 enabled CLONES GLINEs", get_oper_name(si));
+		logcommand(si, CMDLOG_ADMIN, "CLONES:GLINE:ON");
 	}
 	else if (!strcasecmp(arg, "OFF"))
 	{
 		if (!kline_enabled)
 		{
-			command_fail(si, fault_nochange, _("CLONES akills are already disabled."));
+			command_fail(si, fault_nochange, _("CLONES GLINEs are already disabled."));
 			return;
 		}
 		kline_enabled = false;
-		command_success_nodata(si, _("Disabled CLONES akills."));
-		wallops("\2%s\2 disabled CLONES akill", get_oper_name(si));
-		logcommand(si, CMDLOG_ADMIN, "CLONES:AKILL:OFF");
+		command_success_nodata(si, _("Disabled CLONES GLINEs."));
+		wallops("\2%s\2 disabled CLONES GLINE", get_oper_name(si));
+		logcommand(si, CMDLOG_ADMIN, "CLONES:GLINE:OFF");
 	}
 	else if (isdigit((unsigned char)arg[0]))
 	{
 		unsigned int newgrace = atol(arg);
 		if (kline_enabled && grace_count == newgrace)
 		{
-			command_fail(si, fault_nochange, _("CLONES akill grace is already enabled and set to %d kills."), grace_count);
+			command_fail(si, fault_nochange, _("CLONES GLINE grace is already enabled and set to %d kills."), grace_count);
 		}
 		kline_enabled = true;
 		grace_count = newgrace;
-		command_success_nodata(si, _("Enabled CLONES akill with a grace of %d kills"), grace_count);
-		wallops("\2%s\2 enabled CLONES akill with a grace of %d kills", get_oper_name(si), grace_count);
-		logcommand(si, CMDLOG_ADMIN, "CLONES:AKILL:ON grace %d", grace_count);
+		command_success_nodata(si, _("Enabled CLONES GLINE with a grace of %d kills"), grace_count);
+		wallops("\2%s\2 enabled CLONES GLINE with a grace of %d kills", get_oper_name(si), grace_count);
+		logcommand(si, CMDLOG_ADMIN, "CLONES:GLINE:ON grace %d", grace_count);
 	}
 	else
 	{
 		if (kline_enabled)
 		{
 			if (grace_count)
-				command_success_string(si, "ON", _("CLONES akill are currently enabled with a grace of %d kills."), grace_count);
+				command_success_string(si, "ON", _("CLONES GLINEs are currently enabled with a grace of %d kills."), grace_count);
 			else
-				command_success_string(si, "ON", _("CLONES akill are currently enabled."));
+				command_success_string(si, "ON", _("CLONES GLINEs are currently enabled."));
 		}
 		else
-			command_success_string(si, "OFF", _("CLONES akill are currently disabled."));
+			command_success_string(si, "OFF", _("CLONES GLINEs are currently disabled."));
 	}
 }
 
@@ -844,6 +844,7 @@ static void clones_newuser(hook_user_nick_t *data)
 	hostentry_t *he;
 	unsigned int allowed, warn;
 	mowgli_node_t *n;
+	kline_t *k;
 
 	/* If the user has been killed, don't do anything. */
 	if (!u)
@@ -903,7 +904,7 @@ static void clones_newuser(hook_user_nick_t *data)
 	{
 		/* User has exceeded the maximum number of allowed clones. */
 		if (is_autokline_exempt(u))
-			slog(LG_INFO, "CLONES: \2%d\2 clones on \2%s\2 (%s!%s@%s) (user is akill exempt)", i, u->ip, u->nick, u->user, u->host);
+			slog(LG_INFO, "CLONES: \2%d\2 clones on \2%s\2 (%s!%s@%s) (user is GLINE exempt)", i, u->ip, u->nick, u->user, u->host);
 		else if (!kline_enabled || he->gracekills < grace_count || (grace_count > 0 && he->firstkill < time(NULL) - CLONES_GRACE_TIMEPERIOD))
 		{
 			if (he->firstkill < time(NULL) - CLONES_GRACE_TIMEPERIOD)
@@ -917,19 +918,19 @@ static void clones_newuser(hook_user_nick_t *data)
 			}
 
 			if (!kline_enabled)
-				slog(LG_INFO, "CLONES: \2%d\2 clones on \2%s\2 (%s!%s@%s) (AKILL disabled, killing user)", i, u->ip, u->nick, u->user, u->host);
+				slog(LG_INFO, "CLONES: \2%d\2 clones on \2%s\2 (%s!%s@%s) (GLINEs disabled, killing user)", i, u->ip, u->nick, u->user, u->host);
 			else
 				slog(LG_INFO, "CLONES: \2%d\2 clones on \2%s\2 (%s!%s@%s) (grace period, killing user, %d grace kills remaining)", i, u->ip, u->nick,
 					u->user, u->host, grace_count - he->gracekills);
 
-			kill_user(serviceinfo->me, u, "Too many connections from this host.");
+			kill_user(serviceinfo->me, u, "Warning: Too many connections from this host.");
 			data->u = NULL; /* Required due to kill_user being called during user_add hook. --mr_flea */
 		}
 		else
 		{
 			if (! (u->flags & UF_KLINESENT)) {
-				slog(LG_INFO, "CLONES: \2%d\2 clones on \2%s\2 (%s!%s@%s) (AKILL due to excess clones)", i, u->ip, u->nick, u->user, u->host);
-				kline_sts("*", "*", u->ip, kline_duration, "Excessive clones");
+				slog(LG_INFO, "CLONES: \2%d\2 clones on \2%s\2 (%s!%s@%s) (GLINE due to excess clones)", i, u->ip, u->nick, u->user, u->host);
+				k = kline_add_auto("*", u->ip, "Excessive clones", 3600, "AUTO");
 				u->flags |= UF_KLINESENT;
 			}
 		}
