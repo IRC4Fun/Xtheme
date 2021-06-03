@@ -32,7 +32,7 @@ command_t os_akill = { "AKILL", N_("Manages network bans."), PRIV_AKILL, 3, os_c
 command_t os_akill_add = { "ADD", N_("Adds a network ban"), AC_NONE, 2, os_cmd_akill_add, { .path = "" } };
 command_t os_akill_del = { "DEL", N_("Deletes a network ban"), AC_NONE, 1, os_cmd_akill_del, { .path = "" } };
 command_t os_akill_list = { "LIST", N_("Lists all network bans"), AC_NONE, 1, os_cmd_akill_list, { .path = "" } };
-command_t os_akill_sync = { "SYNC", N_("Synchronises network bans to servers"), AC_NONE, 0, os_cmd_akill_sync, { .path = "" } };
+command_t os_akill_sync = { "SYNC", N_("Synchronizes network bans to servers"), AC_NONE, 0, os_cmd_akill_sync, { .path = "" } };
 
 mowgli_patricia_t *os_akill_cmds;
 
@@ -103,7 +103,7 @@ static void os_cmd_akill(sourceinfo_t *si, int parc, char *parv[])
 	if (!cmd)
 	{
 		command_fail(si, fault_needmoreparams, STR_INSUFFICIENT_PARAMS, "AKILL");
-		command_fail(si, fault_needmoreparams, _("Syntax: AKILL ADD|DEL|LIST"));
+		command_fail(si, fault_needmoreparams, _("Syntax: GLINE ADD|DEL|LIST"));
 		return;
 	}
 
@@ -136,8 +136,8 @@ static void os_cmd_akill_add(sourceinfo_t *si, int parc, char *parv[])
 
 	if (!target || !token)
 	{
-		command_fail(si, fault_needmoreparams, STR_INSUFFICIENT_PARAMS, "AKILL ADD");
-		command_fail(si, fault_needmoreparams, _("Syntax: AKILL ADD <nick|hostmask> [!P|!T <minutes>] <reason>"));
+		command_fail(si, fault_needmoreparams, STR_INSUFFICIENT_PARAMS, "GLINE ADD");
+		command_fail(si, fault_needmoreparams, _("Syntax: GLINE ADD <nick|hostmask> [!P|!T <minutes>] <reason>"));
 		return;
 	}
 
@@ -177,13 +177,13 @@ static void os_cmd_akill_add(sourceinfo_t *si, int parc, char *parv[])
 			if (duration == 0)
 			{
 				command_fail(si, fault_badparams, _("Invalid duration given."));
-				command_fail(si, fault_badparams, _("Syntax: AKILL ADD <nick|hostmask> [!P|!T <minutes>] <reason>"));
+				command_fail(si, fault_badparams, _("Syntax: GLINE ADD <nick|hostmask> [!P|!T <minutes>] <reason>"));
 				return;
 			}
 		}
 		else {
-			command_fail(si, fault_needmoreparams, STR_INSUFFICIENT_PARAMS, "AKILL ADD");
-			command_fail(si, fault_needmoreparams, _("Syntax: AKILL ADD <nick|hostmask> [!P|!T <minutes>] <reason>"));
+			command_fail(si, fault_needmoreparams, STR_INSUFFICIENT_PARAMS, "GLINE ADD");
+			command_fail(si, fault_needmoreparams, _("Syntax: GLINE ADD <nick|hostmask> [!P|!T <minutes>] <reason>"));
 			return;
 		}
 
@@ -228,7 +228,7 @@ static void os_cmd_akill_add(sourceinfo_t *si, int parc, char *parv[])
 		if (!match(khost, usermask))
 		{
 			/* match */
-			command_success_nodata(si, _("AKILL MATCH activated for %s!%s@%s"), u->nick, u->user, u->host);
+			command_success_nodata(si, _("GLINE MATCH for %s!%s@%s"), u->nick, u->user, u->host);
 			matches++;
 		}
 	}
@@ -245,15 +245,15 @@ static void os_cmd_akill_add(sourceinfo_t *si, int parc, char *parv[])
 
 		if (!kuser || !khost)
 		{
-			command_fail(si, fault_needmoreparams, STR_INSUFFICIENT_PARAMS, "AKILL ADD");
-			command_fail(si, fault_needmoreparams, _("Syntax: AKILL ADD <user>@<host> [options] <reason>"));
+			command_fail(si, fault_needmoreparams, STR_INSUFFICIENT_PARAMS, "GLINE ADD");
+			command_fail(si, fault_needmoreparams, _("Syntax: GLINE ADD <user>@<host> [options] <reason>"));
 			return;
 		}
 
 		if (strchr(khost,'@'))
 		{
 			command_fail(si, fault_badparams, _("Too many '%c' in user@host."), '@');
-			command_fail(si, fault_badparams, _("Syntax: AKILL ADD <user>@<host> [options] <reason>"));
+			command_fail(si, fault_badparams, _("Syntax: GLINE ADD <user>@<host> [options] <reason>"));
 			return;
 		}
 
@@ -298,7 +298,7 @@ static void os_cmd_akill_add(sourceinfo_t *si, int parc, char *parv[])
 
 	if (kline_find(kuser, khost))
 	{
-		command_fail(si, fault_nochange, _("AKILL \2%s@%s\2 is already matched in the database."), kuser, khost);
+		command_fail(si, fault_nochange, _("GLINE \2%s@%s\2 already exists in the database."), kuser, khost);
 		return;
 	}
 
@@ -313,13 +313,13 @@ static void os_cmd_akill_add(sourceinfo_t *si, int parc, char *parv[])
 			if (kuser == star)
 			{
 			/* match */
-			command_success_nodata(si, _("AKILL MATCH activated for %s!%s@%s"), u->nick, u->user, u->host);
+			command_success_nodata(si, _("GLINE MATCH for %s!%s@%s"), u->nick, u->user, u->host);
 			matches++;
 			}
 			else if (!match(kuser, usersmask))
 			{
 			/* match */
-			command_success_nodata(si, _("AKILL MATCH activated for %s!%s@%s"), u->nick, u->user, u->host);
+			command_success_nodata(si, _("GLINE MATCH for %s!%s@%s"), u->nick, u->user, u->host);
 			matches++;
 			}
 		}
@@ -328,20 +328,20 @@ static void os_cmd_akill_add(sourceinfo_t *si, int parc, char *parv[])
 	k = kline_add(kuser, khost, reason, duration, get_storage_oper_name(si));
 
 	if (duration)
-		command_success_nodata(si, _("Timed AKILL on \2%s@%s\2 was successfully added and will expire in %s. [affects %d user(s)]"), k->user, k->host,
+		command_success_nodata(si, _("Timed GLINE on \2%s@%s\2 successfully added and will expire in %s. [affects %d user(s)]"), k->user, k->host,
 	timediff(duration), matches);
 
 	else
-		command_success_nodata(si, _("AKILL on \2%s@%s\2 was successfully added. [affects %d user(s)]"), k->user, k->host, matches);
+		command_success_nodata(si, _("GLINE on \2%s@%s\2 successfully added. [affects %d user(s)]"), k->user, k->host, matches);
 
-	verbose_wallops("\2%s\2 is \2adding\2 an \2AKILL\2 for \2%s@%s\2 -- reason: \2%s\2 [affects %d user(s)]", get_oper_name(si), k->user, k->host,
+	verbose_wallops("\2%s\2 is \2adding\2 a \2GLINE\2 for \2%s@%s\2 -- reason: \2%s\2 [affects %d user(s)]", get_oper_name(si), k->user, k->host,
 		k->reason, matches);
 
 	if (duration)
-		logcommand(si, CMDLOG_ADMIN, "AKILL:ADD: \2%s@%s\2 (reason: \2%s\2) (duration: \2%s\2) [affects %d user(s)]", k->user, k->host, k->reason,
+		logcommand(si, CMDLOG_ADMIN, "GLINE:ADD: \2%s@%s\2 (reason: \2%s\2) (duration: \2%s\2) [affects %d user(s)]", k->user, k->host, k->reason,
 	timediff(k->duration), matches);
 	else
-		logcommand(si, CMDLOG_ADMIN, "AKILL:ADD: \2%s@%s\2 (reason: \2%s\2) (duration: \2Permanent\2) [affects %d user(s)]", k->user, k->host, k->reason,
+		logcommand(si, CMDLOG_ADMIN, "GLINE:ADD: \2%s@%s\2 (reason: \2%s\2) (duration: \2Permanent\2) [affects %d user(s)]", k->user, k->host, k->reason,
 	matches);
 }
 
@@ -355,8 +355,8 @@ static void os_cmd_akill_del(sourceinfo_t *si, int parc, char *parv[])
 
 	if (!target)
 	{
-		command_fail(si, fault_needmoreparams, STR_INSUFFICIENT_PARAMS, "AKILL DEL");
-		command_fail(si, fault_needmoreparams, _("Syntax: AKILL DEL <hostmask>"));
+		command_fail(si, fault_needmoreparams, STR_INSUFFICIENT_PARAMS, "GLINE DEL");
+		command_fail(si, fault_needmoreparams, _("Syntax: GLINE DEL <hostmask>"));
 		return;
 	}
 
@@ -389,15 +389,15 @@ static void os_cmd_akill_del(sourceinfo_t *si, int parc, char *parv[])
 				{
 					if (!(k = kline_find_num(i)))
 					{
-						command_fail(si, fault_nosuch_target, _("No such AKILL with number \2%d\2."), i);
+						command_fail(si, fault_nosuch_target, _("No such GLINE with GID number \2%d\2."), i);
 						continue;
 					}
 
-					command_success_nodata(si, _("AKILL on \2%s@%s\2 has been successfully removed."), k->user, k->host);
-					verbose_wallops("\2%s\2 is \2removing\2 an \2AKILL\2 for \2%s@%s\2 -- reason: \2%s\2",
+					command_success_nodata(si, _("GLINE on \2%s@%s\2 has been successfully removed."), k->user, k->host);
+					verbose_wallops("\2%s\2 is \2removing\2 a \2GLINE\2 for \2%s@%s\2 -- reason: \2%s\2",
 						get_oper_name(si), k->user, k->host, k->reason);
 
-					logcommand(si, CMDLOG_ADMIN, "AKILL:DEL: \2%s@%s\2", k->user, k->host);
+					logcommand(si, CMDLOG_ADMIN, "GLINE:DEL: \2%s@%s\2", k->user, k->host);
 					kline_delete(k);
 				}
 
@@ -408,15 +408,15 @@ static void os_cmd_akill_del(sourceinfo_t *si, int parc, char *parv[])
 
 			if (!(k = kline_find_num(number)))
 			{
-				command_fail(si, fault_nosuch_target, _("No such AKILL with number \2%d\2."), number);
+				command_fail(si, fault_nosuch_target, _("No such GLINE with GID number \2%d\2."), number);
 				return;
 			}
 
-			command_success_nodata(si, _("AKILL on \2%s@%s\2 has been successfully removed."), k->user, k->host);
-			verbose_wallops("\2%s\2 is \2removing\2 an \2AKILL\2 for \2%s@%s\2 -- reason: \2%s\2",
+			command_success_nodata(si, _("GLINE on \2%s@%s\2 has been successfully removed."), k->user, k->host);
+			verbose_wallops("\2%s\2 is \2removing\2 a \2GLINE\2 for \2%s@%s\2 -- reason: \2%s\2",
 				get_oper_name(si), k->user, k->host, k->reason);
 
-			logcommand(si, CMDLOG_ADMIN, "AKILL:DEL: \2%s@%s\2", k->user, k->host);
+			logcommand(si, CMDLOG_ADMIN, "GLINE:DEL: \2%s@%s\2", k->user, k->host);
 			kline_delete(k);
 		} while ((s = strtok(NULL, ",")));
 
@@ -448,15 +448,15 @@ static void os_cmd_akill_del(sourceinfo_t *si, int parc, char *parv[])
 			{
 				if (!(k = kline_find_num(i)))
 				{
-					command_fail(si, fault_nosuch_target, _("No such AKILL with number \2%d\2."), i);
+					command_fail(si, fault_nosuch_target, _("No such GLINE with GID number \2%d\2."), i);
 					continue;
 				}
 
-				command_success_nodata(si, _("AKILL on \2%s@%s\2 has been successfully removed."), k->user, k->host);
-				verbose_wallops("\2%s\2 is \2removing\2 an \2AKILL\2 for \2%s@%s\2 -- reason: \2%s\2",
+				command_success_nodata(si, _("GLINE on \2%s@%s\2 has been successfully removed."), k->user, k->host);
+				verbose_wallops("\2%s\2 is \2removing\2 a \2GLINE\2 for \2%s@%s\2 -- reason: \2%s\2",
 					get_oper_name(si), k->user, k->host, k->reason);
 
-				logcommand(si, CMDLOG_ADMIN, "AKILL:DEL: \2%s@%s\2", k->user, k->host);
+				logcommand(si, CMDLOG_ADMIN, "GLINE:DEL: \2%s@%s\2", k->user, k->host);
 				kline_delete(k);
 			}
 
@@ -467,16 +467,16 @@ static void os_cmd_akill_del(sourceinfo_t *si, int parc, char *parv[])
 
 		if (!(k = kline_find_num(number)))
 		{
-			command_fail(si, fault_nosuch_target, _("No such AKILL with number \2%d\2."), number);
+			command_fail(si, fault_nosuch_target, _("No such GLINE with GID number \2%d\2."), number);
 			return;
 		}
 
-		command_success_nodata(si, _("AKILL on \2%s@%s\2 has been successfully removed."), k->user, k->host);
+		command_success_nodata(si, _("GLINE on \2%s@%s\2 has been successfully removed."), k->user, k->host);
 
-		verbose_wallops("\2%s\2 is \2removing\2 an \2AKILL\2 for \2%s@%s\2 -- reason: \2%s\2",
+		verbose_wallops("\2%s\2 is \2removing\2 a \2GLINE\2 for \2%s@%s\2 -- reason: \2%s\2",
 			get_oper_name(si), k->user, k->host, k->reason);
 
-		logcommand(si, CMDLOG_ADMIN, "AKILL:DEL: \2%s@%s\2", k->user, k->host);
+		logcommand(si, CMDLOG_ADMIN, "GLINE:DEL: \2%s@%s\2", k->user, k->host);
 		kline_delete(k);
 		return;
 	}
@@ -486,16 +486,16 @@ static void os_cmd_akill_del(sourceinfo_t *si, int parc, char *parv[])
 
 	if (!(k = kline_find(userbuf, hostbuf)))
 	{
-		command_fail(si, fault_nosuch_target, _("No such AKILL: \2%s@%s\2."), userbuf, hostbuf);
+		command_fail(si, fault_nosuch_target, _("No such GLINE: \2%s@%s\2."), userbuf, hostbuf);
 		return;
 	}
 
-	command_success_nodata(si, _("AKILL on \2%s@%s\2 has been successfully removed."), userbuf, hostbuf);
+	command_success_nodata(si, _("GLINE on \2%s@%s\2 has been successfully removed."), userbuf, hostbuf);
 
-	verbose_wallops("\2%s\2 is \2removing\2 an \2AKILL\2 for \2%s@%s\2 -- reason: \2%s\2",
+	verbose_wallops("\2%s\2 is \2removing\2 a \2GLINE\2 for \2%s@%s\2 -- reason: \2%s\2",
 		get_oper_name(si), k->user, k->host, k->reason);
 
-	logcommand(si, CMDLOG_ADMIN, "AKILL:DEL: \2%s@%s\2", k->user, k->host);
+	logcommand(si, CMDLOG_ADMIN, "GLINE:DEL: \2%s@%s\2", k->user, k->host);
 	kline_delete(k);
 }
 
@@ -528,17 +528,17 @@ static void os_cmd_akill_list(sourceinfo_t *si, int parc, char *parv[])
 			full = true;
 		else
 		{
-			command_fail(si, fault_badparams, STR_INVALID_PARAMS, "AKILL LIST");
+			command_fail(si, fault_badparams, STR_INVALID_PARAMS, "GLINE LIST");
 			return;
 		}
 	}
 
 	if (user || host || num)
-		command_success_nodata(si, _("AKILL list matching given criteria (with reasons):"));
+		command_success_nodata(si, _("GLINE list matching given criteria (with reasons):"));
 	else if (full)
-		command_success_nodata(si, _("AKILL list (with reasons):"));
+		command_success_nodata(si, _("GLINE list (with reasons):"));
 	else
-		command_success_nodata(si, _("AKILL list:"));
+		command_success_nodata(si, _("GLINE list:"));
 
 	MOWGLI_ITER_FOREACH(n, klnlist.head)
 	{
@@ -568,15 +568,15 @@ static void os_cmd_akill_list(sourceinfo_t *si, int parc, char *parv[])
 	}
 
 	if (user || host || num)
-		command_success_nodata(si, _("End of AKILL list."));
+		command_success_nodata(si, _("End of GLINE list."));
 	else
-		command_success_nodata(si, _("Total of \2%zu\2 %s in AKILL list."), klnlist.count, (klnlist.count == 1) ? "entry" : "entries");
+		command_success_nodata(si, _("Total of \2%zu\2 %s in GLINE list."), klnlist.count, (klnlist.count == 1) ? "entry" : "entries");
 	if (user || host)
-		logcommand(si, CMDLOG_GET, "AKILL:LIST: \2%s@%s\2", user ? user : "*", host ? host : "*");
+		logcommand(si, CMDLOG_GET, "GLINE:LIST: \2%s@%s\2", user ? user : "*", host ? host : "*");
 	else if (num)
-		logcommand(si, CMDLOG_GET, "AKILL:LIST: \2%lu\2", num);
+		logcommand(si, CMDLOG_GET, "GLINE:LIST: \2%lu\2", num);
 	else
-		logcommand(si, CMDLOG_GET, "AKILL:LIST: \2%s\2", full ? " FULL" : "");
+		logcommand(si, CMDLOG_GET, "GLINE:LIST: \2%s\2", full ? " FULL" : "");
 }
 
 static void os_cmd_akill_sync(sourceinfo_t *si, int parc, char *parv[])
@@ -584,7 +584,7 @@ static void os_cmd_akill_sync(sourceinfo_t *si, int parc, char *parv[])
 	mowgli_node_t *n;
 	kline_t *k;
 
-	logcommand(si, CMDLOG_DO, "AKILL:SYNC");
+	logcommand(si, CMDLOG_DO, "GLINE:SYNC");
 
 	MOWGLI_ITER_FOREACH(n, klnlist.head)
 	{
@@ -600,7 +600,7 @@ static void os_cmd_akill_sync(sourceinfo_t *si, int parc, char *parv[])
 			kline_sts("*", k->user, k->host, k->expires - CURRTIME, reason);
 	}
 
-	command_success_nodata(si, _("AKILL list synchronized to servers."));
+	command_success_nodata(si, _("GLINE list synchronized to servers."));
 }
 
 /* vim:cinoptions=>s,e0,n0,f0,{0,}0,^0,=s,ps,t0,c3,+s,(2s,us,)20,*30,gs,hs
