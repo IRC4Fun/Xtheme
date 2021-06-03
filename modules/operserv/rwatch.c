@@ -547,16 +547,16 @@ static void rwatch_newuser(hook_user_nick_t *data)
 			if (rw->actions & RWACT_KLINE)
 			{
 				if (is_autokline_exempt(u))
-					slog(LG_INFO, "RWATCH:MATCH:EXEMPT - Not AKILLing *@%s (user %s!%s@%s is AKILL Exempt but matches %s %s)",
+					slog(LG_INFO, "RWATCH:MATCH:EXEMPT - Not G-lining *@%s (%s!%s@%s is GLINE EXEMPT but matches %s %s)",
 							u->host, u->nick, u->user, u->host,
 							rw->regex, rw->reason);
 				else
 				{
-					slog(LG_VERBOSE, "RWATCH:MATCH: AKILLing *@%s (user %s!%s@%s matches %s %s)",
+					slog(LG_VERBOSE, "RWATCH:MATCH: G-lining *@%s (%s!%s@%s matches %s %s)",
 							u->host, u->nick, u->user, u->host,
 							rw->regex, rw->reason);
 					if (! (u->flags & UF_KLINESENT)) {
-						k = kline_add("*", u->ip, rw->reason, 86400, "RWATCH");
+						k = kline_add_auto("*", u->ip, rw->reason, 86400, "RWATCH");
 						u->flags |= UF_KLINESENT;
 					}
 				}
