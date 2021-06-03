@@ -528,8 +528,8 @@ static void dnsbl_hit(user_t *u, struct Blacklist *blptr)
 	{
 		case DNSBL_ACT_AKILL:
 			slog(LG_INFO, "DNSBL: G-lining \2%s\2!%s@%s [%s] - listed in \2%s\2", u->nick, u->user, u->host, u->gecos, blptr->host);
-			notice(svs->nick, u->nick, "Your IP address %s is listed in DNS Blacklist %s", u->ip, blptr->host);
-			k = kline_add("*", u->ip, "Banned (DNS Blacklist)", config_options.akill_time, blptr->host);
+			notice(svs->nick, u->nick, "Your IP address %s is listed in DNS Blacklist %s -- see https://irc4.fun/dnsbl for more information.", u->ip, blptr->host);
+			k = kline_add_auto("*", u->ip, "DNSBL Match - See https://irc4.fun/dnsbl for more information.", config_options.akill_time, blptr->host);
 			break;
 
 		case DNSBL_ACT_ZLINE:
