@@ -14,6 +14,7 @@ SRCS = \
 	clearchan.c	\
 	clones.c	\
 	compare.c	\
+	gline.c	\
 	greplog.c	\
 	help.c	\
 	identify.c	\
@@ -46,7 +47,7 @@ SRCS = \
 	sqline.c	\
 	uptime.c	\
 	update.c	\
-	zline.c	
+	zline.c
 
 include ../../extra.mk
 include ../../buildsys.mk
@@ -54,4 +55,3 @@ include ../../buildsys.module.mk
 
 CPPFLAGS	+= -I../../include
 LIBS +=	-L../../libathemecore -lathemecore ${LDFLAGS_RPATH}
-
