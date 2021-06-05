@@ -529,7 +529,20 @@ static void dnsbl_hit(user_t *u, struct Blacklist *blptr)
 		case DNSBL_ACT_AKILL:
 			slog(LG_INFO, "DNSBL: G-lining \2%s\2!%s@%s [%s] - listed in \2%s\2", u->nick, u->user, u->host, u->gecos, blptr->host);
 			notice(svs->nick, u->nick, "Your IP address %s is listed in DNS Blacklist %s -- see https://irc4.fun/dnsbl for more information.", u->ip, blptr->host);
-			k = kline_add_auto("*", u->ip, "DNSBL Match - See https://irc4.fun/dnsbl for more information.", config_options.akill_time, blptr->host);
+
+			if (blptr->host == "dnsbl.dronebl.org")
+			{
+				k = kline_add_auto("*", u->ip, "DNSBL Match in DroneBL - See https://irc4.fun/dnsbl for more information.", config_options.akill_time, blptr->host);
+			}
+			if (blptr->host == "rbl.efnetrbl.org")
+			{
+				k = kline_add_auto("*", u->ip, "DNSBL Match in EFnetRBL - See https://irc4.fun/dnsbl for more information.", config_options.akill_time, blptr->host);
+			}
+			if (blptr->host == "tor.efnet.org")
+			{
+				k = kline_add_auto("*", u->ip, "TOR is not allowed due to abuse - See https://irc4.fun/dnsbl for more information.", config_options.akill_time, blptr->host);
+			}
+
 			break;
 
 		case DNSBL_ACT_ZLINE:
