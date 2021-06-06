@@ -556,7 +556,7 @@ static void rwatch_newuser(hook_user_nick_t *data)
 							u->host, u->nick, u->user, u->host,
 							rw->regex, rw->reason);
 					if (! (u->flags & UF_KLINESENT)) {
-						k = kline_add_auto("*", u->ip, rw->reason, 86400, "RWATCH");
+						k = kline_add_auto("*", u->ip, rw->reason, 604800, "RWATCH");
 						u->flags |= UF_KLINESENT;
 					}
 				}
@@ -564,7 +564,7 @@ static void rwatch_newuser(hook_user_nick_t *data)
 			else if (rw->actions & RWACT_QUARANTINE)
 			{
 				if (is_autokline_exempt(u))
-					slog(LG_INFO, "RWATCH:MATCH:EXEMPT - Not qurantining *@%s (user %s!%s@%s is AKILL Exempt but matches %s %s)",
+					slog(LG_INFO, "RWATCH:MATCH:EXEMPT - Not qurantining *@%s (user %s!%s@%s is GLINE Exempt but matches %s %s)",
 							u->host, u->nick, u->user, u->host,
 							rw->regex, rw->reason);
 				else
