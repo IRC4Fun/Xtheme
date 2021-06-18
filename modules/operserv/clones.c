@@ -930,7 +930,7 @@ static void clones_newuser(hook_user_nick_t *data)
 		{
 			if (! (u->flags & UF_KLINESENT)) {
 				slog(LG_INFO, "CLONES: \2%d\2 clones on \2%s\2 (%s!%s@%s) (GLINE due to excess clones)", i, u->ip, u->nick, u->user, u->host);
-				k = kline_add_auto("*", u->ip, "Excessive clones", 3600, "AUTO");
+				k = kline_add_auto("*", u->ip, "Excessive clones - see https://irc4.fun/clones for more information.", 3600, "AUTO");
 				u->flags |= UF_KLINESENT;
 			}
 		}
